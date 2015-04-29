@@ -1,0 +1,52 @@
+pre_install() {
+    test -e .
+#   if [ -f /usr/lib/systemd/system/windmill-controller.service ]; then
+#       echo "Stopping Plexmediaserver before starting..."
+#       systemctl stop windmill-controller
+#   fi;
+}
+
+post_install() {
+    ### Create group if does not exist
+    if [ ! `getent passwd windmill-controller` ]; then
+        useradd -r -s /bin/bash -d /opt/windmill-controller -U windmill-controller
+        if [ ! $? -eq 0 ]
+        then
+            echo "WARNING COULDN'T CREATE AURCOMPILER USERID, MAKE SURE I HAVE PERMISSON TO DO THAT!"
+            exit 1
+        fi
+    fi;
+  
+    chown -R windmill-controller:windmill-controller /opt/windmill-controller
+}
+
+pre_upgrade() {
+    
+    if [ $(systemctl is-enabled windmill-controller.service) == "enabled" ]; then
+        echo "Stopping the windmill-controller service"
+        systemctl stop windmill-controller.service
+    fi
+}
+
+post_upgrade() {
+    systemctl --system daemon-reload
+#   . /etc/conf.d/windmill-controller
+#   rm -f ${PLEX_MEDIA_SERVER_HOME}/start.sh
+#   ln -s ${PLEX_MEDIA_SERVER_HOME}/start_pms ${PLEX_MEDIA_SERVER_HOME}/start.sh
+    chown -R windmill-controller:windmill-controller /opt/windmill-controller
+#   echo "Starting windmill-controller..."
+#   systemctl start windmill-controller
+
+    if [ $(systemctl is-enabled windmill-controller.service) == "enabled" ]; then
+        echo "Starting the windmill-controller service"
+        systemctl start windmill-controller.service
+    fi
+}
+
+pre_remove() {
+    test -e .
+}
+
+post_remove() {
+    userdel windmill-controller
+}
