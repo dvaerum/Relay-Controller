@@ -1,9 +1,12 @@
-import RPIO as GPIO
 from collections import deque
 from threading import Thread
 import time
 from state_machine import StateMachine, RelayState
 import sys
+try:
+    import RPIO as GPIO
+except SystemError:
+    import lib.fakegpio as GPIO
 
 
 class Watt:

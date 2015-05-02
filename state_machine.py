@@ -1,6 +1,9 @@
 import time
 import sys
-import RPIO as GPIO
+try:
+    import RPIO as GPIO
+except SystemError:
+    import lib.fakegpio as GPIO
 
 debug = False
 if len(sys.argv) > 1 and sys.argv[1] == "debug":
@@ -200,6 +203,7 @@ class StateMachine:
             return True
         else:
             return False
+
 
 def debug_print_gpio(sm):
     current_state = sm._StateMachine__start

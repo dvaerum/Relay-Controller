@@ -13,6 +13,7 @@ from config import Config
 from inotify import Inotify
 from daemon import reload_config_and_apply
 
+
 def signal_handler(signal, frame):
         print("You pressed Ctrl+C!\nSignal: '{0}'\nFrame: '{1}'".format(signal,frame))
         sys.exit(0)
@@ -21,7 +22,7 @@ def signal_handler(signal, frame):
 def main():
     debug = None
 
-    config_file = "config.conf"
+    config_file = "etc/config.conf"
 
     conf = Config(config_file)
     conf.save()

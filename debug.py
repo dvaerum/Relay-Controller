@@ -1,6 +1,10 @@
-import RPIO as GPIO
 from time import sleep
 from threading import Thread
+try:
+    import RPIO as GPIO
+except SystemError:
+    import lib.fakegpio as GPIO
+
 
 class Debug:
     __time_between_pulse = None
