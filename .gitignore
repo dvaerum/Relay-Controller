@@ -8,6 +8,7 @@ etc/config.conf
 etc/test.conf
 test.py
 
-windmill-controller-1.0.0-1-x86_64.pkg.tar.xz
+windmill-controller-*.pkg.tar.xz
 
 PKGBUILD
+windmill-controller.install
