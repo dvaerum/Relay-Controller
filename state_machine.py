@@ -5,6 +5,8 @@ try:
 except SystemError:
     import lib.fakegpio as GPIO
 
+from utilities import my_print as print
+
 debug = False
 if len(sys.argv) > 1 and sys.argv[1] == "debug":
     debug = True
@@ -45,18 +47,36 @@ class RelayState:
             print("Setup Relay {0}".format(self.__relay_number))
             sys.stdout.flush()
 
+    def get_kilo_watt(self):
+        return self.__kilo_watt
+
+    def get_switch_on(self):
+        return self.__switch_on
+
+    def get_switch_off(self):
+        return self.__switch_off
+
+    def get_gpio_pin(self):
+        return self.__gpio_pin
+
     def get_relay_number(self):
         return self.__relay_number
 
-    def run(self, kile_watt):
-        if kile_watt >= self.__kilo_watt:
-            if self.__relay_switch_is == _ON and self.__relay_switch_to == _ON:
-                return self.force_state(_ON)
-            return self.__next_state()
-        elif kile_watt <= self.__kilo_watt:
-            if self.__relay_switch_is == _OFF and self.__relay_switch_to == _OFF:
-                return self.force_state(_OFF)
-            return self.__prev_state()
+    def update(self, kilo_watt, switch_on, switch_off):
+        self.__kilo_watt = kilo_watt
+        self.__switch_on = switch_on
+        self.__switch_off = switch_off
+
+    def copy_to(self, instance_to_be_overridden):
+        # TODO: raise ValueError if 'gpio_pin' and 'relay_number' is not the same as the one been updated
+        instance_to_be_overridden.update(self.__kilo_watt, self.__switch_on, self.__switch_off)
+
+    def __return_state(self, state):
+        self.__switch_timestamp = 0.0
+        if not state:
+            return self
+        else:
+            return state
 
     def __next_state(self):
         timestamp = time.perf_counter()
@@ -68,11 +88,6 @@ class RelayState:
             if debug:
                 self.__relay_switch_is = _ON
             return self.__return_state(self.next)
-
-        if debug:
-            print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
-                  format(timestamp - self.__switch_timestamp, self.__switch_on))
-        return self
 
     def __prev_state(self):
         timestamp = time.perf_counter()
@@ -90,13 +105,6 @@ class RelayState:
                   format(timestamp - self.__switch_timestamp, self.__switch_off))
         return self
 
-    def __return_state(self, state):
-        self.__switch_timestamp = 0.0
-        if not state:
-            return self
-        else:
-            return state
-
     def force_state(self, On_Off):
         if On_Off == _ON:
             GPIO.output(self.__gpio_pin, True)
@@ -105,6 +113,21 @@ class RelayState:
             GPIO.output(self.__gpio_pin, False)
             return self.__return_state(self.prev)
         raise ValueError("The input value has to be 'ON' or 'OFF'")
+
+    def run(self, kile_watt):
+        if kile_watt > self.__kilo_watt:
+            if self.__relay_switch_is == _ON and self.__relay_switch_to == _ON:
+                return self.force_state(_ON)
+            return self.__next_state()
+        elif kile_watt < self.__kilo_watt:
+            if self.__relay_switch_is == _OFF and self.__relay_switch_to == _OFF:
+                return self.force_state(_OFF)
+            return self.__prev_state()
+
+        if debug:
+            print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
+                  format(timestamp - self.__switch_timestamp, self.__switch_on))
+        return self
 
 
 class StateZero:
