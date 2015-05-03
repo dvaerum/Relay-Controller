@@ -10,9 +10,9 @@ from time import sleep
 class TestRelayState(unittest.TestCase):
     def setUp(self):
         self.relay_state = RelayState(10, 3, 9, 11, 37)
-        self.relay_state_1 = RelayState(10, 3.0, 9, 11, 1)
-        self.relay_state_2 = RelayState(10,   5, 7, 10, 2)
-        self.relay_state_3 = RelayState(10,   5, 7,  9, 3)
+        self.relay_state_1 = RelayState(10,   1, 2, 10, 1)
+        self.relay_state_2 = RelayState(10,   1, 2,  9, 2)
+        self.relay_state_3 = RelayState(10,   1, 2, 11, 3)
 
         self.relay_state_1.next = self.relay_state_2
         self.relay_state_2.prev = self.relay_state_1
@@ -75,11 +75,57 @@ class TestRelayState(unittest.TestCase):
         self.assertEqual(self.relay_state_3.force_state(_OFF),
                          self.relay_state_2)
 
+    def __run_assertEqual(self, current_state, goto_state, kW, current_relay_on_off):
+        current_state = current_state.run(kW)
+        self.assertEqual(current_state, goto_state,
+                         "current state is {0} not {1}".
+                         format(current_state.get_relay_number(),
+                         goto_state.get_relay_number()))
+        self.assertEqual(current_state._RelayState__relay_switch_is, current_relay_on_off,
+                         "the relay of the current state {0} is {1}".
+                         format(current_state.get_relay_number(),
+                         "ON" if current_state._RelayState__relay_switch_is == _ON else "OFF"))
+        return current_state
+
     def test_12_run(self):
         self.assertEqual(self.relay_state_2.run(10.), self.relay_state_2)
 
-        self.assertEqual(self.relay_state_1.run(9), self.relay_state_1)
+        # "cs" stands for "current_state"
+        cs = self.relay_state_1
 
+        cs = self.__run_assertEqual(cs, self.relay_state_1,  9, _OFF)
+        cs = self.__run_assertEqual(cs, self.relay_state_1, 11, _OFF)
+        sleep(1.1)
+        cs = self.__run_assertEqual(cs, self.relay_state_2, 11, _OFF)
+
+        cs = self.__run_assertEqual(cs, self.relay_state_2, 11, _OFF)
+        sleep(1.1)
+        cs = self.__run_assertEqual(cs, self.relay_state_3, 11, _OFF)
+
+        cs = self.__run_assertEqual(cs, self.relay_state_3, 11, _OFF)
+        sleep(1.1)
+        cs = self.__run_assertEqual(cs, self.relay_state_3, 11, _ON)
+
+        cs = self.__run_assertEqual(cs, self.relay_state_3,  9, _ON)
+        sleep(2.1)
+        cs = self.__run_assertEqual(cs, self.relay_state_2,  9, _ON)
+        sleep(2.1)
+        cs = self.__run_assertEqual(cs, self.relay_state_2,  9, _ON)
+        cs = self.__run_assertEqual(cs, self.relay_state_2,  9, _ON)
+        cs = self.__run_assertEqual(cs, self.relay_state_2,  9, _ON)
+        sleep(2.1)
+        cs = self.__run_assertEqual(cs, self.relay_state_1,  9, _ON)
+        cs = self.__run_assertEqual(cs, self.relay_state_2, 11, _OFF)
+        cs = self.__run_assertEqual(cs, self.relay_state_2, 11, _OFF)
+        sleep(1.1)
+        cs = self.__run_assertEqual(cs, self.relay_state_3, 11, _OFF)
+        cs = self.__run_assertEqual(cs, self.relay_state_2,  9, _ON)
+        cs = self.__run_assertEqual(cs, self.relay_state_3, 11, _OFF)
+        cs = self.__run_assertEqual(cs, self.relay_state_3, 11, _OFF)
+        sleep(1.1)
+        cs = self.__run_assertEqual(cs, self.relay_state_3, 11, _ON)
+
+        # print("current state is {0}".format(cs.get_relay_number()))
 
 
 if __name__ == '__main__':
