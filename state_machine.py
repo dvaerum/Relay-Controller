@@ -6,6 +6,7 @@ except SystemError:
     import lib.fakegpio as GPIO
 
 from utilities import my_print as print
+from utilities import debug_print
 
 debug = False
 if len(sys.argv) > 1 and sys.argv[1] == "debug":
@@ -89,9 +90,8 @@ class RelayState:
                 self.__relay_switch_is = _ON
             return self.__return_state(self.next)
 
-        if debug:
-            print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
-                  format(timestamp - self.__switch_timestamp, self.__switch_on))
+        debug_print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
+                    format(timestamp - self.__switch_timestamp, self.__switch_on))
         return self
 
     def __prev_state(self):
@@ -105,9 +105,8 @@ class RelayState:
                 self.__relay_switch_is = _OFF
             return self.__return_state(self.prev)
 
-        if debug:
-            print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
-                  format(timestamp - self.__switch_timestamp, self.__switch_off))
+        debug_print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
+                    format(timestamp - self.__switch_timestamp, self.__switch_off))
         return self
 
     def force_state(self, On_Off):
