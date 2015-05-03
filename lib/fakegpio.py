@@ -2,7 +2,7 @@ from threading import Thread
 from time import sleep
 from utilities import debug_print
 
-print("Loading library: {0}".format(__name__))
+debug_print("Loading library: {0}".format(__name__))
 
 
 pins = {"1": 10, "2": 9, "3": 11, "4": 22}
