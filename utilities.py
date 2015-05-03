@@ -13,6 +13,11 @@ def my_print(*args, sep=' ', end='\n', file=None):
         print(*args, sep=sep, end=end, file=file)
 
 
+def debug_print(*args, sep=' ', end='\n', file=None):
+    if debug:
+        print(*args, sep=sep, end=end, file=file)
+
+
 def main():
     global debug
     debug = True
