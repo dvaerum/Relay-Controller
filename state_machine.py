@@ -89,6 +89,11 @@ class RelayState:
                 self.__relay_switch_is = _ON
             return self.__return_state(self.next)
 
+        if debug:
+            print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
+                  format(timestamp - self.__switch_timestamp, self.__switch_on))
+        return self
+
     def __prev_state(self):
         timestamp = time.perf_counter()
         if not self.__relay_switch_to == _OFF or self.__switch_timestamp == 0.0:
@@ -123,11 +128,6 @@ class RelayState:
             if self.__relay_switch_is == _OFF and self.__relay_switch_to == _OFF:
                 return self.force_state(_OFF)
             return self.__prev_state()
-
-        if debug:
-            print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
-                  format(timestamp - self.__switch_timestamp, self.__switch_on))
-        return self
 
 
 class StateZero:
