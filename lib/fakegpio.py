@@ -1,6 +1,6 @@
 from threading import Thread
 from time import sleep
-from utilities import my_print as print
+from utilities import debug_print
 
 print("Loading library: {0}".format(__name__))
 
@@ -19,7 +19,7 @@ def setup(gpio_pin, in_out):
 def output(gpio_pin, high_low):
     for v in pins:
         if pins[v] == gpio_pin:
-            print("Relay[{0}] is {1}".format(v, "HIGH" if high_low else "LOW"))
+            debug_print("Relay[{0}] is {1}".format(v, "HIGH" if high_low else "LOW"))
 
 
 def main():
