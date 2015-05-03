@@ -86,8 +86,7 @@ class RelayState:
             self.__switch_timestamp = timestamp
         elif timestamp - self.__switch_timestamp > self.__switch_on:
             GPIO.output(self.__gpio_pin, True)
-            if debug:
-                self.__relay_switch_is = _ON
+            self.__relay_switch_is = _ON
             return self.__return_state(self.next)
 
         debug_print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
@@ -101,8 +100,7 @@ class RelayState:
             self.__switch_timestamp = timestamp
         elif timestamp - self.__switch_timestamp > self.__switch_off:
             GPIO.output(self.__gpio_pin, False)
-            if debug:
-                self.__relay_switch_is = _OFF
+            self.__relay_switch_is = _OFF
             return self.__return_state(self.prev)
 
         debug_print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
@@ -127,6 +125,7 @@ class RelayState:
             if self.__relay_switch_is == _OFF and self.__relay_switch_to == _OFF:
                 return self.force_state(_OFF)
             return self.__prev_state()
+        return self
 
 
 class StateZero:
@@ -179,16 +178,11 @@ class StateMachine:
         else:
             current_state = self.__start.next
             while not new_relay.prev:
-                if current_state.get_relay_number() == new_relay.get_relay_number():
+                if current_state and current_state.get_relay_number() == new_relay.get_relay_number():
                     # TODO: fix black python magic. Mads (vismanden)
-                    # siger man kan gøre det med en list istedet for link list.
-                    # og det svære må jeg akende at han har ret
-                    # new_relay.prev = current_state.prev
-                    # new_relay.next = current_state.next
-                    # current_state.prev.next = new_relay
-                    current_state._RelayState__kilo_watt = new_relay._RelayState__kilo_watt
-                    current_state._RelayState__switch_on = new_relay._RelayState__switch_on
-                    current_state._RelayState__switch_off = new_relay._RelayState__switch_off
+                    # TODO: siger man kan gøre det med en list istedet for link list.
+                    # TODO: og det svære må jeg akende at han har ret
+                    new_relay.copy_to(current_state)
                     break
                 elif current_state.get_relay_number() < new_relay.get_relay_number():
                     if current_state.next and (current_state.next.get_relay_number() < new_relay.get_relay_number()
@@ -201,7 +195,15 @@ class StateMachine:
                         if not new_relay.next:
                             self.__end = new_relay
                 elif current_state.get_relay_number() > new_relay.get_relay_number():
-                    current_state = current_state.next
+                    if not current_state.next:
+                        tmp = current_state.prev
+                        tmp.next = new_relay
+                        new_relay.prev = tmp
+                        new_relay.next = current_state
+                        current_state.prev = new_relay
+
+                    else:
+                        current_state = current_state.next
 
     def start(self):
         if self.__start.next:
@@ -217,7 +219,7 @@ class StateMachine:
 
     def stop(self):
         while not self.__start == self.__current_state:
-            self.__current_state == self.__current_state.force_state(_OFF)
+            self.__current_state = self.__current_state.force_state(_OFF)
         self.__current_state = None
 
     def is_started(self):
