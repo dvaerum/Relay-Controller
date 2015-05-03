@@ -1,5 +1,6 @@
 from threading import Thread
 from time import sleep
+from utilities import my_print as print
 
 print("Loading library: {0}".format(__name__))
 
