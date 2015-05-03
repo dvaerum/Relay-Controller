@@ -3,18 +3,21 @@ import sys
 __author__ = 'alt_mulig'
 
 
-debug = False
-if len(sys.argv) > 1 and sys.argv[1] == "debug":
-    debug = True
+debug = 0
+if len(sys.argv) > 1:
+    if sys.argv[1] == "debug":
+        debug = 1
+    elif sys.argv[1] == "debug2":
+        debug = 2
 
 
 def my_print(*args, sep=' ', end='\n', file=None):
-    if debug:
+    if debug == 1:
         print(*args, sep=sep, end=end, file=file)
 
 
 def debug_print(*args, sep=' ', end='\n', file=None):
-    if debug:
+    if debug == 2:
         print(*args, sep=sep, end=end, file=file)
 
 
