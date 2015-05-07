@@ -12,14 +12,20 @@ class Config:
 
     __relay = []
 
+    # TODO: Create a config file for this
     __gpio_pins = {"1": 10, "2": 9, "3": 11, "4": 22}
 
     def __init__(self, filename):
         self.__file = filename
 
     def load(self):
-        print("Info: Load config file")
+        # Raise FileNotFoundError if file is missing
+        open(self.__file, "r")
+
+        print("Info: Config file loading...")
         self.__config.read(self.__file)
+
+
 
         tmp_relay = []
         for key in self.__config.keys():
@@ -34,7 +40,11 @@ class Config:
                 tmp_relay[-1].gpio_pin = self.__gpio_pins[match.string[5:]]
                 tmp_relay[-1].relay_number = int(match.string[5:])
 
+        if not tmp_relay:
+            raise ImportError("There was no relays specified in the config file '{0}'".format(self.__file))
+
         self.__relay = tmp_relay
+        print("Info: Config file Loaded")
 
     def save(self):
         print("Info: Save config file")
@@ -43,14 +53,14 @@ class Config:
         self.__config["Relay1"]["watt"] = "10"
         self.__config["Relay1"]["koble_ind"] = "30"
         self.__config["Relay1"]["koble_ud"] = "90"
-        self.__config["Relay3"] = {}
-        self.__config["Relay3"]["watt"] = "10"
-        self.__config["Relay3"]["koble_ind"] = "30"
-        self.__config["Relay3"]["koble_ud"] = "90"
         self.__config["Relay2"] = {}
         self.__config["Relay2"]["watt"] = "10"
         self.__config["Relay2"]["koble_ind"] = "30"
         self.__config["Relay2"]["koble_ud"] = "90"
+        self.__config["Relay3"] = {}
+        self.__config["Relay3"]["watt"] = "10"
+        self.__config["Relay3"]["koble_ind"] = "30"
+        self.__config["Relay3"]["koble_ud"] = "90"
         self.__config["Relay4"] = {}
         self.__config["Relay4"]["watt"] = "10"
         self.__config["Relay4"]["koble_ind"] = "30"
@@ -59,7 +69,7 @@ class Config:
         with open(self.__file, "w", newline="\r\n") as configfile:
             self.__config.write(configfile)
 
-    def get_relay(self):
+    def get_relays(self):
         return self.__relay
 
 
@@ -72,7 +82,7 @@ def main():
         conf.save()
 
     conf.load()
-    for r in conf.get_relay():
+    for r in conf.get_relays():
         print("kW: {0}, switch_on: {1}, switch_off: {2}, gpio_pin: {3}, relay_number: {4}".
               format(r.kilo_watt,
                      r.switch_on,
