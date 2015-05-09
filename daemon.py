@@ -51,7 +51,7 @@ def main():
     conf.load()
 
     pi = PI(17)
-    pi.add_relay(conf.get_relay())
+    pi.add_relay(conf.get_relays())
     pi.start()
 
     update_config = Inotify(config_file)
