@@ -29,7 +29,7 @@ def main():
     conf.load()
 
     gpio = PI(17)
-    gpio.add_relay(conf.get_relay())
+    gpio.add_relay(conf.get_relays())
     gpio.start()
 
     update_config = Inotify(config_file)
