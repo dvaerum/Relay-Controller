@@ -1,4 +1,4 @@
-import configparser
+from configparser import ConfigParser
 import re
 import os.path
 
@@ -8,7 +8,7 @@ class Config:
         __slots__ = ["kilo_watt", "switch_on", "switch_off", "gpio_pin", "relay_number"]
 
     __file = None
-    __config = configparser.ConfigParser()
+    __config = ConfigParser()
 
     __relay = []
 
@@ -19,32 +19,50 @@ class Config:
         self.__file = filename
 
     def load(self):
+        self.__config.clear()
         # Raise FileNotFoundError if file is missing
         open(self.__file, "r")
 
         print("Info: Config file loading...")
         self.__config.read(self.__file)
 
-
-
         tmp_relay = []
-        for key in self.__config.keys():
+        for section in self.__config.keys():
             # TODO: Rewrite hardcoding
-            match = re.search("Relay[1-4]", key)
+            match = re.search("Relay[1-4]", section)
             if match:
-                tmp_relay.append(self.Relay())
-                tmp_relay[-1].kilo_watt = float(self.__config[key]["watt"])
-                tmp_relay[-1].switch_on = float(self.__config[key]["koble_ind"])
-                tmp_relay[-1].switch_off = float(self.__config[key]["koble_ud"])
-                #tmp_relay[-1].gpio_pin = int(self.__config[key]["gpio_pin"])
-                tmp_relay[-1].gpio_pin = self.__gpio_pins[match.string[5:]]
-                tmp_relay[-1].relay_number = int(match.string[5:])
+                r = self.__check_relay(section)
+                if r:
+                    tmp_relay.append(r)
 
         if not tmp_relay:
             raise ImportError("There was no relays specified in the config file '{0}'".format(self.__file))
 
         self.__relay = tmp_relay
         print("Info: Config file Loaded")
+
+    def __check_relay(self, section):
+        tmp = self.Relay()
+        try:
+            tmp.kilo_watt = self.__to_float(section, "watt")
+            tmp.switch_on = self.__to_float(section, "koble_ind")
+            tmp.switch_off = self.__to_float(section, "koble_ud")
+            tmp.gpio_pin = self.__gpio_pins[section[5:]]
+            tmp.relay_number = int(section[5:])
+        except ValueError as msg:
+            print(msg)
+            return None
+        return tmp
+
+    def __to_float(self, section, key):
+        try:
+            value = self.__config[section][key]
+        except KeyError:
+            raise ValueError("The key '{1}' is missing section '{0}'".format(section, key))
+
+        if not value:
+            raise ValueError("The key '{1}', in section '{0}' is undefined".format(section, key))
+        return float(value.replace(",", "."))
 
     def save(self):
         print("Info: Save config file")
