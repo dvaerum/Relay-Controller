@@ -1,6 +1,6 @@
 from collections import deque
 from threading import Thread
-from threading import Timer
+from threading import Event
 import time
 from state_machine import StateMachine, RelayState
 import sys
@@ -51,7 +51,9 @@ class PI(Thread):
 
     __thread_relay = None
     __thread_fail_safe = None
-    __fail_safe_sec = 60.5
+    __event_fail_safe = None
+    __fail_safe_last_run = time.perf_counter()
+    __fail_safe_sec = 80
 
     def __init__(self, pin_interrupts):
         Thread.__init__(self)
@@ -61,9 +63,11 @@ class PI(Thread):
         self.__watt.set_event_function(self.__pass_watt)
 
     def run(self):
+        self.__event_fail_safe = Event()
         GPIO.wait_for_interrupts()
 
     def stop(self):
+        self.__event_fail_safe = None
         GPIO.stop_waiting_for_interrupts()
         GPIO.cleanup()
 
@@ -83,7 +87,7 @@ class PI(Thread):
         print("%.4f kW (%.2fs)" % (kilo_watt, interval_time))
         sys.stdout.flush()
 
-        if not self.__thread_fail_safe or not self.__thread_fail_safe.is_alive():
+        if not self.__event_fail_safe.is_set():
             if not self.__thread_relay or not self.__thread_relay.is_alive():
                 if self.__state_machine.is_started():
                             self.__thread_relay = Thread(target=self.__state_machine.next,
@@ -93,16 +97,22 @@ class PI(Thread):
                 else:
                     self.__state_machine.start()
 
-        if self.__thread_fail_safe:
-            self.__thread_fail_safe.cancel()
-            # TODO: Add time value to the config file
-        self.__thread_fail_safe = Timer(self.__fail_safe_sec, self.__fail_safe)
-        self.__thread_fail_safe.start()
+        self.__fail_safe_last_run = time.perf_counter()
+        if not self.__thread_fail_safe or not self.__thread_fail_safe.is_alive():
+            self.__thread_fail_safe = Thread(target=self.__fail_safe,
+                                             name="Thread PI.__fail_safe")
+            self.__thread_fail_safe.start()
 
     def __fail_safe(self):
-        if not self.__thread_relay or not self.__thread_relay.is_alive():
-            # TODO: Make it only print on debug
-            print("Runs fail_safe because there hasn't been a pulse in {0}s".
-                  format(self.__fail_safe_sec))
-            sys.stdout.flush()
-            self.__state_machine.stop()
+        while self.__event_fail_safe:
+            if time.perf_counter() - self.__fail_safe_last_run > self.__fail_safe_sec:
+                if not self.__thread_relay or not self.__thread_relay.is_alive():
+                    self.__event_fail_safe.set()
+                    # TODO: Make it only print on debug
+                    print("Runs fail_safe because there hasn't been a pulse in {0}s".
+                          format(self.__fail_safe_sec))
+                    sys.stdout.flush()
+                    self.__state_machine.stop()
+                    self.__event_fail_safe.clear()
+                    self.__fail_safe_last_run = time.perf_counter()
+            time.sleep(1.0)
