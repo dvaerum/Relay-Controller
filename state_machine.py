@@ -206,8 +206,9 @@ class StateMachine:
                         current_state = current_state.next
 
     def start(self):
-        if self.__start.next:
-            self.__current_state = self.__start.run()
+        if not self.is_started():
+            if self.__start.next:
+                self.__current_state = self.__start.run()
 
     def next(self, kW, time_interval):
         if self.__current_state:
@@ -218,9 +219,10 @@ class StateMachine:
             raise IndexError("You have to call start first")
 
     def stop(self):
-        while not self.__start == self.__current_state:
-            self.__current_state = self.__current_state.force_state(_OFF)
-        self.__current_state = None
+        if self.__current_state:
+            while not self.__start == self.__current_state:
+                self.__current_state = self.__current_state.force_state(_OFF)
+            self.__current_state = None
 
     def is_started(self):
         if self.__current_state:
