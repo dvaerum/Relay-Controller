@@ -24,6 +24,7 @@ class TestStateMachine(unittest.TestCase):
     def test_01_start(self):
         self.assertEqual(self.sm._StateMachine__current_state, None)
         self.sm.start()
+        self.sm.start()
         self.assertEqual(self.sm._StateMachine__current_state,
                          self.sm._StateMachine__start.next)
 
@@ -34,6 +35,7 @@ class TestStateMachine(unittest.TestCase):
 
     def test_03_stop(self):
         self.sm.start()
+        self.sm.stop()
         self.sm.stop()
         self.assertEqual(self.sm._StateMachine__current_state, None)
 
