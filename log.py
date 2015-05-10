@@ -8,56 +8,64 @@ import re
 
 
 class Log():
-    log_queue = Queue()
-    path = "etc"
-    log_file = None
-    thread = None
+    __log_queue = Queue()
+    __log_file = None
+    __thread = None
+
+    def __init__(self, path):
+        self.__path = path
+
+    def get(self):
+        return self.__path
 
     def put(self, msg):
-        self.log_queue.put(msg)
-
-        if not self.thread or not self.thread.is_alive():
-            self.thread = Thread(target=self.__run, name="Thread log.write_log")
-            self.thread.start()
+        self.__log_queue.put(msg)
+        if not self.__thread or not self.__thread.is_alive():
+            self.__thread = Thread(target=self.run, name="Thread log.write_log")
+            self.__thread.start()
 
     def get_logfile(self):
-        files = listdir(self.path)
+        files = listdir(self.__path)
         log_files = []
         for file in files:
             if re.search(r"Updated [0-2][0-9]\.[0-5][0-9]\.[0-5][0-9] [0-3][0-9]-[0-1][0-9]-[0-9]{4}\.log", file):
                 log_files.append(file)
 
         if len(log_files) == 0:
-            self.log_file = None
+            self.__log_file = None
         elif len(log_files) == 1:
-            self.log_file = log_files[0]
+            self.__log_file = log_files[0]
         else:
             for file in log_files:
-                remove("{0}/{1}".format(self.path, file))
-            self.log_file = None
+                remove("{0}/{1}".format(self.__path, file))
+            self.__log_file = None
 
-    def __run(self):
+    # TODO: Give this method a real name
+    def herp(self):
         tmp = deque(maxlen=10)
         self.get_logfile()
-        if self.log_file:
-            with open("{0}/{1}".format(self.path, self.log_file, self.log_file), "r", newline="\r\n") as file:
+        if self.__log_file:
+            with open("{0}/{1}".format(self.__path, self.__log_file, self.__log_file), "r", newline="\r\n") as file:
                 for line in reversed(file.read().split("\r\n")):
                     if not line == "None" and not line == "":
                         tmp.appendleft(line)
 
-        while not self.log_queue.empty():
-            tmp.appendleft(self.log_queue.get())
-            self.log_queue.task_done()
+        while not self.__log_queue.empty():
+            tmp.appendleft(self.__log_queue.get())
+            self.__log_queue.task_done()
 
-        if self.log_file:
-            remove("{0}/{1}".format(self.path, self.log_file))
+        if self.__log_file:
+            remove("{0}/{1}".format(self.__path, self.__log_file))
 
         tmp2 = ""
         for line in reversed(tmp):
             tmp2 = line + "\r\n" + tmp2
 
-        with open("{0}/Updated {1}.log".format(self.path, strftime("%H.%M.%S %d-%m-%Y")), "w+") as file:
-            file.write(tmp2)
+        return tmp2
+
+    def run(self):
+        with open("{0}/Updated {1}.log".format(self.__path, strftime("%H.%M.%S %d-%m-%Y")), "w+") as file:
+            file.write(self.herp())
 
 
 def log(status, msg):
@@ -76,7 +84,7 @@ WARNING = "WARNING"
 INFO = "INFO"
 ERROR = "ERROR"
 
-log_class = Log()
+log_class = Log("etc")
 
 
 def main():
