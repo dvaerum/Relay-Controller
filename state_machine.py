@@ -304,7 +304,6 @@ def main():
             sm.add_relay(RelayState(8, 2, 5, 11, 3))
             sm.add_relay(RelayState(9, 2, 5, 22, 4))
 
-
     sm.stop()
     GPIO.cleanup()
 
