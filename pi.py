@@ -97,11 +97,12 @@ class PI(Thread):
             self.__thread_fail_safe.cancel()
             # TODO: Add time value to the config file
         self.__thread_fail_safe = Timer(self.__fail_safe_sec, self.__fail_safe)
+        self.__thread_fail_safe.start()
 
     def __fail_safe(self):
         if not self.__thread_relay or not self.__thread_relay.is_alive():
             # TODO: Make it only print on debug
-            print("Runs fail_safe because there hasn't been a pulse in {}s".
+            print("Runs fail_safe because there hasn't been a pulse in {0}s".
                   format(self.__fail_safe_sec))
             sys.stdout.flush()
             self.__state_machine.stop()
