@@ -50,7 +50,8 @@ class PI(Thread):
     __relays_count = 0
 
     __thread_relay = None
-    __timer_fail_safe = None
+    __thread_fail_safe = None
+    __fail_safe_sec = 60.5
 
     def __init__(self, pin_interrupts):
         Thread.__init__(self)
@@ -82,21 +83,25 @@ class PI(Thread):
         print("%.4f kW (%.2fs)" % (kilo_watt, interval_time))
         sys.stdout.flush()
 
-        if self.__state_machine.is_started():
+        if not self.__thread_fail_safe or not self.__thread_fail_safe.is_alive():
             if not self.__thread_relay or not self.__thread_relay.is_alive():
-                if not self.__timer_fail_safe or not self.__timer_fail_safe.is_alive():
-                    self.__thread_relay = Thread(target=self.__state_machine.next,
-                                                 name="Thread StateMachine.next",
-                                                 args=(kilo_watt, interval_time))
-                    self.__thread_relay.start()
-        else:
-            self.__state_machine.start()
+                if self.__state_machine.is_started():
+                            self.__thread_relay = Thread(target=self.__state_machine.next,
+                                                         name="Thread StateMachine.next",
+                                                         args=(kilo_watt, interval_time))
+                            self.__thread_relay.start()
+                else:
+                    self.__state_machine.start()
 
-        if self.__timer_fail_safe:
-            self.__timer_fail_safe.cancel()
+        if self.__thread_fail_safe:
+            self.__thread_fail_safe.cancel()
             # TODO: Add time value to the config file
-        self.__timer_fail_safe = Timer(60.5, self.__fail_safe)
+        self.__thread_fail_safe = Timer(self.__fail_safe_sec, self.__fail_safe)
 
     def __fail_safe(self):
         if not self.__thread_relay or not self.__thread_relay.is_alive():
+            # TODO: Make it only print on debug
+            print("Runs fail_safe because there hasn't been a pulse in {}s".
+                  format(self.__fail_safe_sec))
+            sys.stdout.flush()
             self.__state_machine.stop()
