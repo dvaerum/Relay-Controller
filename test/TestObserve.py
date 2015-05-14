@@ -3,8 +3,8 @@ __doc__ = 'http://www.giantflyingsaucer.com/blog/?p=5117'
 
 import unittest
 
-from observable import Observable
-from observer import Observer
+from lib.observable import Observable
+from lib.observer import Observer
 
 
 class AnObserver(Observer):
