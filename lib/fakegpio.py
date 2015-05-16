@@ -33,7 +33,7 @@ def add_interrupt_callback(gpio_pin, func, **kwargs):
         interrupt = FakeGPIO(gpio_pin, func)
 
 
-def wait_for_interrupts():
+def wait_for_interrupts(threaded=True):
     global interrupt
     interrupt.set_pulse_timer(0.27)
 
