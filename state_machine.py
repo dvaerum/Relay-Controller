@@ -179,6 +179,9 @@ class StateMachine(Observer):
 
         if self.is_started():
             self.next(args[0], args[1])
+        else:
+            # TODO: Find a better solution
+            self.start()
 
     def add_relay(self, new_relay):
         if not self.__start.next:
