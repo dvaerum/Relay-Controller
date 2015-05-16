@@ -1,5 +1,7 @@
 import time
 import sys
+from lib.observer import Observer
+
 try:
     import RPIO as GPIO
 except SystemError:
@@ -161,7 +163,7 @@ class StateZero:
         raise ValueError("The input value has to be 'ON' or 'OFF'")
 
 
-class StateMachine:
+class StateMachine(Observer):
     __start = None
     __end = None
     __current_state = None
@@ -169,6 +171,10 @@ class StateMachine:
     def __init__(self):
         self.__start = StateZero()
         pass
+
+    def update(self, *args, **kwargs):
+        if self.is_started():
+            self.next(args[0], args[1])
 
     def add_relay(self, new_relay):
         if not self.__start.next:
