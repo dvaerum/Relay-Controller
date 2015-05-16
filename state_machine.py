@@ -173,6 +173,10 @@ class StateMachine(Observer):
         pass
 
     def update(self, *args, **kwargs):
+        # TODO: Make it only print on debug
+        print("%.4f kW (%.2fs)" % (args[0], args[1]))
+        sys.stdout.flush()
+
         if self.is_started():
             self.next(args[0], args[1])
 
