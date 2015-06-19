@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 import re
 import os.path
+import sys
 
 
 class Config:
@@ -20,10 +21,12 @@ class Config:
 
     def load(self):
         self.__config.clear()
+
         # Raise FileNotFoundError if file is missing
         open(self.__file, "r")
 
         print("Info: Config file loading...")
+        sys.stdout.flush()
         self.__config.read(self.__file)
 
         tmp_relay = []
@@ -36,10 +39,13 @@ class Config:
                     tmp_relay.append(r)
 
         if not tmp_relay:
+            print("Info: There is not defined any relays")
+            sys.stdout.flush()
             raise ImportError("There was no relays specified in the config file '{0}'".format(self.__file))
 
         self.__relay = tmp_relay
         print("Info: Config file Loaded")
+        sys.stdout.flush()
 
     def __check_relay(self, section):
         tmp = self.Relay()
@@ -51,6 +57,7 @@ class Config:
             tmp.relay_number = int(section[5:])
         except ValueError as msg:
             print(msg)
+            sys.stdout.flush()
             return None
         return tmp
 
@@ -66,23 +73,24 @@ class Config:
 
     def save(self):
         print("Info: Save config file")
+        sys.stdout.flush()
 
         self.__config["Relay1"] = {}
-        self.__config["Relay1"]["watt"] = "10"
-        self.__config["Relay1"]["koble_ind"] = "30"
+        self.__config["Relay1"]["watt"] = "9.6"
+        self.__config["Relay1"]["koble_ind"] = "10"
         self.__config["Relay1"]["koble_ud"] = "90"
         self.__config["Relay2"] = {}
-        self.__config["Relay2"]["watt"] = "10"
-        self.__config["Relay2"]["koble_ind"] = "30"
-        self.__config["Relay2"]["koble_ud"] = "90"
+        self.__config["Relay2"]["watt"] = "9.6"
+        self.__config["Relay2"]["koble_ind"] = "10"
+        self.__config["Relay2"]["koble_ud"] = "60"
         self.__config["Relay3"] = {}
-        self.__config["Relay3"]["watt"] = "10"
-        self.__config["Relay3"]["koble_ind"] = "30"
-        self.__config["Relay3"]["koble_ud"] = "90"
+        self.__config["Relay3"]["watt"] = "9.7"
+        self.__config["Relay3"]["koble_ind"] = "10"
+        self.__config["Relay3"]["koble_ud"] = "60"
         self.__config["Relay4"] = {}
-        self.__config["Relay4"]["watt"] = "10"
-        self.__config["Relay4"]["koble_ind"] = "30"
-        self.__config["Relay4"]["koble_ud"] = "90"
+        self.__config["Relay4"]["watt"] = "9.7"
+        self.__config["Relay4"]["koble_ind"] = "10"
+        self.__config["Relay4"]["koble_ud"] = "60"
 
         with open(self.__file, "w", newline="\r\n") as configfile:
             self.__config.write(configfile)
