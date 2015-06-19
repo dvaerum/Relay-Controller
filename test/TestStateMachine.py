@@ -3,7 +3,6 @@ __author__ = 'alt_mulig'
 import unittest
 from state_machine import RelayState
 from state_machine import StateMachine
-from time import sleep
 
 
 class TestStateMachine(unittest.TestCase):
