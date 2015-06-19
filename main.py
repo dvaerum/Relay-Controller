@@ -7,7 +7,8 @@
                                 # of Eclipse host machine
 import sys
 import signal
-from pi import PI
+# TODO: Test if pi_v2 works with main
+from pi_v2 import PI
 from debug import Debug
 from config import Config
 from inotify import Inotify
