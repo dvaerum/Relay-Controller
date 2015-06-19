@@ -5,7 +5,7 @@ __author__ = 'Dennis Vestergaard Værum'
 import sys
 import os
 import signal
-from pi import PI
+from pi_v2 import PI
 from config import Config
 from inotify import Inotify
 
