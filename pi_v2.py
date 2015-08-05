@@ -21,9 +21,11 @@ class Watt:
     __pulse = deque([])
     __kW = 0.0
 
+    __max_time = 60
+    __max_pulses = 5
+
     __pin_interrupts = None
 
-    # TODO: Make it sow the start cannot be called if it is already running
     def start(self, pin_interrupts):
         if self.__pin_interrupts:
             GPIO.del_interrupt_callback(self.__pin_interrupts)
@@ -37,25 +39,32 @@ class Watt:
 
     def __add_pulse(self, gpio_id, value):
         # TODO: How to handle float overflow (time.perf_counter)
-        # TODO: Mads (vismanden) siger at det aldrig sker
+        # TODO: Mads (vismanden) siger at det aldrig vil ske
         self.__pulse.append(time.perf_counter())
 
         self.observable_pulse.update_observers()
 
         seconds = self.__interval()
-        if seconds >= 60:
-            self.__kW = (len(self.__pulse) / seconds) / 0.036
+        if len(self.__pulse) >= self.__max_pulses:
+            self.__calc_kW(seconds)
 
-            self.observable_kW_update.update_observers(self.__kW, seconds)
+            while len(self.__pulse) >= self.__max_pulses:
+                self.__pulse.popleft()
+        elif seconds >= self.__max_time:
+            self.__calc_kW(seconds)
 
-            while self.__interval() >= 60:
+            while self.__interval() >= self.__max_time:
                 self.__pulse.popleft()
         else:
-            print("An Interrupt happened (%.2fs)" % seconds)
+            print("An Interrupt happened ({0:.2f}s)".format(seconds))
             sys.stdout.flush()
 
     def __interval(self):
         return self.__pulse[-1] - self.__pulse[0]
+
+    def __calc_kW(self, seconds):
+        self.__kW = ((len(self.__pulse)) / seconds) / 0.036
+        self.observable_kW_update.update_observers(self.__kW, seconds)
 
 
 watt = Watt()
@@ -100,7 +109,7 @@ class FailSafe(Observer):
             time.sleep(1.0)
 
 
-class PI:
+class PI(Observer):
     __state_machine = StateMachine()
     __fail_safe = FailSafe(80, __state_machine.stop)
 
@@ -112,12 +121,17 @@ class PI:
         watt.observable_kW_update.register(self.__state_machine)
         watt.observable_pulse.register(self.__fail_safe)
         watt.start(self.__pin_interrupts)
+        self.__fail_safe.start()
 
     def stop(self):
+        self.__fail_safe.stop()
         watt.stop()
         watt.observable_kW_update.unregister(self.__state_machine)
         watt.observable_pulse.unregister(self.__fail_safe)
         self.__state_machine.stop()
+
+    def update(self, relay):
+        self.add_relay(relay)
 
     def add_relay(self, relay):
         # TODO: event, that shall wait on handle_relay
