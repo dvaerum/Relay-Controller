@@ -3,7 +3,7 @@ import sys
 __author__ = 'alt_mulig'
 
 
-debug = 0
+debug = 2
 if len(sys.argv) > 1:
     if sys.argv[1] == "debug":
         debug = 1
@@ -12,13 +12,16 @@ if len(sys.argv) > 1:
 
 
 def my_print(*args, sep=' ', end='\n', file=None):
-    if debug == 1:
+    if debug >= 1:
         print(*args, sep=sep, end=end, file=file)
+        sys.stdout.flush()
 
 
 def debug_print(*args, sep=' ', end='\n', file=None):
-    if debug == 2:
+    if debug >= 2:
         print(*args, sep=sep, end=end, file=file)
+        sys.stdout.flush()
+
 
 
 def main():
