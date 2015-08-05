@@ -35,20 +35,22 @@ class RelayState:
     __relay_switch_to = None
     __relay_switch_is = _OFF
 
-    def __init__(self, kilo_watt, switch_on,
-                 switch_off, gpio_pin, relay_number):
+    def __init__(self, kilo_watt, switch_on, switch_off, gpio_pin, relay_number):
 
         self.__kilo_watt = kilo_watt
         self.__switch_on = switch_on
         self.__switch_off = switch_off
         self.__gpio_pin = gpio_pin
         self.__relay_number = relay_number
-        GPIO.setup(self.__gpio_pin, GPIO.OUT)
-        GPIO.output(self.__gpio_pin, False)
 
         if self.__relay_number:
             print("Setup Relay {0}".format(self.__relay_number))
             sys.stdout.flush()
+
+    def setup(self):
+        # TODO explain why this cannot be inside "__init__"
+        GPIO.setup(self.__gpio_pin, GPIO.OUT)
+        GPIO.output(self.__gpio_pin, False)
 
     def get_kilo_watt(self):
         return self.__kilo_watt
@@ -91,7 +93,7 @@ class RelayState:
             self.__relay_switch_is = _ON
             return self.__return_state(self.next)
 
-        debug_print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
+        debug_print("┌───────────────────────────────┐\n│ count = {0:>5.2f}, switch = {1:>5.2f} │".
                     format(timestamp - self.__switch_timestamp, self.__switch_on))
         return self
 
@@ -105,7 +107,7 @@ class RelayState:
             self.__relay_switch_is = _OFF
             return self.__return_state(self.prev)
 
-        debug_print("┌─────────────────────────────┐\n│ count = {0:.2f}, switch = {1:.2f} │".
+        debug_print("┌───────────────────────────────┐\n│ count = {0:>5.2f}, switch = {1:>5.2f} │".
                     format(timestamp - self.__switch_timestamp, self.__switch_off))
         return self
 
@@ -173,8 +175,7 @@ class StateMachine(Observer):
         pass
 
     def update(self, *args, **kwargs):
-        # TODO: Make it only print on debug
-        print("%.4f kW (%.2fs)" % (args[0], args[1]))
+        print("{0:.3f} kW ({1:.2f}s)".format(args[0], args[1]))
         sys.stdout.flush()
 
         if self.is_started():
@@ -188,33 +189,43 @@ class StateMachine(Observer):
             new_relay.prev = self.__start
             self.__start.next = new_relay
             self.__end = new_relay
+            new_relay.setup()
         else:
             current_state = self.__start.next
             while not new_relay.prev:
+                # Updates existing relay
                 if current_state and current_state.get_relay_number() == new_relay.get_relay_number():
                     # TODO: fix black python magic. Mads (vismanden)
                     # TODO: siger man kan gøre det med en list istedet for link list.
                     # TODO: og det svære må jeg akende at han har ret
                     new_relay.copy_to(current_state)
                     break
+                # Checks that "current_state" is lower then "new_state"
                 elif current_state.get_relay_number() < new_relay.get_relay_number():
+                    # Checks that "current_state" is the highest number relay that is lower then "new_relay"
                     if current_state.next and (current_state.next.get_relay_number() < new_relay.get_relay_number()
                                                or current_state.next.get_relay_number() == new_relay.get_relay_number()):
                         current_state = current_state.next
+
+                    # Add the new relay
                     else:
                         new_relay.prev = current_state
                         new_relay.next = current_state.next
                         current_state.next = new_relay
                         if not new_relay.next:
                             self.__end = new_relay
+                        new_relay.setup()
+
+                # check if "current_state" number is bigger then "new_relay"
                 elif current_state.get_relay_number() > new_relay.get_relay_number():
+                    # check if this is the last relay and if it is adds the "new_relay" before this one
                     if not current_state.next:
                         tmp = current_state.prev
                         tmp.next = new_relay
                         new_relay.prev = tmp
                         new_relay.next = current_state
                         current_state.prev = new_relay
-
+                        new_relay.setup()
                     else:
                         current_state = current_state.next
 

@@ -2,11 +2,15 @@ from configparser import ConfigParser
 import re
 import os.path
 import sys
+from lib.observable import Observable
+from lib.observer import Observer
 
 
-class Config:
+class Config(Observer):
     class Relay(object):
         __slots__ = ["kilo_watt", "switch_on", "switch_off", "gpio_pin", "relay_number"]
+
+    observable = Observable()
 
     __file = None
     __config = ConfigParser()
@@ -18,6 +22,9 @@ class Config:
 
     def __init__(self, filename):
         self.__file = filename
+
+    def update(self, *args, **kwargs):
+        self.load()
 
     def load(self):
         self.__config.clear()
@@ -45,6 +52,10 @@ class Config:
 
         self.__relay = tmp_relay
         print("Info: Config file Loaded")
+        sys.stdout.flush()
+
+        self.observable.update_observers(self.__relay)
+        print("Info: Notified observers")
         sys.stdout.flush()
 
     def __check_relay(self, section):
@@ -97,7 +108,6 @@ class Config:
 
     def get_relays(self):
         return self.__relay
-
 
 def main():
     filename = "etc/test.conf"

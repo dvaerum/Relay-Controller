@@ -35,7 +35,7 @@ def add_interrupt_callback(gpio_pin, func, **kwargs):
 
 def wait_for_interrupts(threaded=True):
     global interrupt
-    interrupt.set_pulse_timer(0.27)
+    interrupt.set_pulse_timer(3.05)
 
 
 def stop_waiting_for_interrupts():

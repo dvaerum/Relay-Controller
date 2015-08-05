@@ -7,11 +7,10 @@ import os
 import signal
 from pi_v2 import PI
 from config import Config
-from inotify import Inotify
+from inotify import inotify
 
 
 pi = None
-update_config = None
 
 
 def reload_config_and_apply(event, *args):
@@ -28,8 +27,8 @@ def signal_handler(signal, frame):
 
 def signal_handler_sigterm(signal, frame):
     print("Exiting...")
+    inotify.stop()
     pi.stop()
-    update_config.stop()
     print("Exited")
     sys.exit(0)
 
@@ -40,7 +39,6 @@ def signal_handler_sigkill(signal, frame):
 
 def main():
     global pi
-    global update_config
 
     config_file = "etc/config.conf"
     conf = Config(config_file)
@@ -48,15 +46,17 @@ def main():
     if not os.path.isfile(config_file):
         conf.save()
 
+    pi = PI(17)
+    conf.observable.register(pi)
+
     conf.load()
 
-    pi = PI(17)
-    pi.add_relay(conf.get_relays())
+    # pi.add_relay(conf.get_relays())
     pi.start()
 
-    update_config = Inotify(config_file)
-    update_config.set_reload_function(reload_config_and_apply, conf, pi)
-    update_config.start()
+    inotify.add_file(config_file)
+    inotify.register(config_file, conf)
+    inotify.start()
 
     signal.signal(signal.SIGTERM, signal_handler_sigterm)
     signal.signal(signal.SIGHUP, signal_handler_sigkill)
