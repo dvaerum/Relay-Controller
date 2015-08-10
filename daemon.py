@@ -5,21 +5,12 @@ __author__ = 'Dennis Vestergaard Værum'
 import sys
 import os
 import signal
-from pi_v2 import PI
+from pi import PI
 from config import Config
 from inotify import inotify
 
 
 pi = None
-
-
-def reload_config_and_apply(event, *args):
-    # @args[0] : Config instance
-    # @args[1] : PI instance
-
-    args[0].load()
-    args[1].add_relay(args[0].get_relay())
-
 
 def signal_handler(signal, frame):
     signal_handler_sigterm(signal, frame)
