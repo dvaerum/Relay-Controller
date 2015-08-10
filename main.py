@@ -8,11 +8,11 @@
 import sys
 import signal
 # TODO: Test if pi_v2 works with main
-from pi_v2 import PI
+from pi import PI
 from debug import Debug
-from config import Config
-from inotify import Inotify
-from daemon import reload_config_and_apply
+from config import Config, os
+from inotify import Inotify, inotify
+from daemon import signal_handler_sigterm, signal_handler_sigkill
 
 
 def signal_handler(signal, frame):
@@ -24,18 +24,24 @@ def main():
     debug = None
 
     config_file = "etc/config.conf"
-
     conf = Config(config_file)
-    conf.save()
+
+    if not os.path.isfile(config_file):
+        conf.save()
+
+    pi = PI(17)
+    conf.observable.register(pi)
+
     conf.load()
 
-    gpio = PI(17)
-    gpio.add_relay(conf.get_relays())
-    gpio.start()
+    pi.start()
 
-    update_config = Inotify(config_file)
-    update_config.set_reload_function(reload_config_and_apply, Config, gpio)
-    update_config.start()
+    inotify.add_file(config_file)
+    inotify.register(config_file, conf)
+    inotify.start()
+
+    signal.signal(signal.SIGTERM, signal_handler_sigterm)
+    signal.signal(signal.SIGHUP, signal_handler_sigkill)
 
     signal.signal(signal.SIGINT, signal_handler)
 
@@ -54,8 +60,6 @@ def main():
 
     print("Exiting...")
     debug.stop()
-    gpio.stop()
-    update_config.stop()
     print("Exited")
 
 if __name__ == "__main__":
