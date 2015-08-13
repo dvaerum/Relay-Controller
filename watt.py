@@ -1,7 +1,8 @@
 __author__ = 'alt_mulig'
 
-from collections import deque
 import sys
+import time
+from collections import deque
 from lib.observable import Observable
 try:
     import RPIO as GPIO
