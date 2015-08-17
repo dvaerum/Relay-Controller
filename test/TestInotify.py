@@ -1,16 +1,16 @@
-from time import sleep
-from lib.observer import Observer
-
-__author__ = 'Dennis Værum'
-
 import unittest
 import threading
 from inotify import inotify
 from os import remove
 from os.path import exists
+from time import sleep
+from lib.observer import Observer
+
+
+__author__ = 'Dennis Værum'
+
 
 class TestInotify(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.filename = "etc/test.conf"
@@ -27,8 +27,8 @@ class TestInotify(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         inotify.stop()
-        # if exists(cls.filename):
-        #     remove(cls.filename)
+        if exists(cls.filename):
+            remove(cls.filename)
 
     def test_file_not_existing(self):
         with self.assertRaises(FileNotFoundError):
@@ -87,6 +87,7 @@ class TestInotify(unittest.TestCase):
     def test_delete_and_create_file(self):
         pass
         # I don't know how to test this
+
 
 class Notify(Observer):
     __notified = False
