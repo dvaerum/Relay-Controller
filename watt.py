@@ -19,6 +19,7 @@ class Watt:
 
     __max_time = 60
     __max_pulses = 5
+    __
 
     __pin_interrupts = None
 
@@ -27,7 +28,7 @@ class Watt:
             GPIO.del_interrupt_callback(self.__pin_interrupts)
         self.__pin_interrupts = pin_interrupts
 
-        GPIO.add_interrupt_callback(self.__pin_interrupts, self.__add_pulse, edge='rising')
+        GPIO.add_interrupt_callback(self.__pin_interrupts, self.__add_pulse, edge='rising', debounce_timeout_ms=100)
         GPIO.wait_for_interrupts(threaded=True)
 
     def stop(self):
