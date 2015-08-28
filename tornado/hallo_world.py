@@ -1,13 +1,15 @@
 from threading import Thread
 import threading
 from time import sleep
-from tornado.websocket import WebSocketHandler, tornado
-from lib.observer import Observer
-from lib.relay_net_client import Client
 import os
+
+from tornado.websocket import WebSocketHandler, tornado
 from tornado.escape import json_encode
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application, url
+
+from lib.observer import Observer
+from relay_net_client import Client
 
 __author__ = 'alt_mulig'
 
