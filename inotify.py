@@ -49,9 +49,6 @@ class Inotify(Thread):
 
 
 class __Inotify_v2():
-    __wm = pyinotify.WatchManager()
-    __notifier = pyinotify.Notifier(__wm)
-
     __is_run = False
     __thread = None
     __timeout = 1000  # milliseconds
@@ -96,6 +93,8 @@ class __Inotify_v2():
 
     def start(self):
         if not self.__thread or not self.__thread.is_alive():
+            self.__wm = pyinotify.WatchManager()
+            self.__notifier = pyinotify.Notifier(self.__wm)
             self.__thread = Thread(target=self.__run, name="Thread Inotify.run")
             self.__thread.start()
 
@@ -153,7 +152,14 @@ def main():
 
     tt = Tester()
     watch_file = inotify
+
+    # TODO: Make test case for this
     watch_file.start()
+    sleep(2)
+    watch_file.stop()
+    sleep(2)
+    watch_file.start()
+
     watch_file.add_file("etc/test.conf")
     # watch_file.add_file("etc/herp.conf")
     watch_file.register("etc/test.conf", tt)
