@@ -7,7 +7,8 @@ pysrc
 etc/
 test.py
 
-windmill-controller-*.pkg.tar.xz
+relay-controller-*.pkg.tar.xz
 
+.PKGBUILD*
 PKGBUILD
-windmill-controller.install
+relay-controller.install
