@@ -1,30 +1,31 @@
 __author__ = 'Dennis Vestergaard Værum'
 
-from file_safe import FailSafe
+from fail_safe import fail_safe
 from lib.observer import Observer
 from state_machine import StateMachine, RelayState
 from watt import watt
 
 
 class PI(Observer):
-    __state_machine = StateMachine()
-    __fail_safe = FailSafe(80, __state_machine.stop)
-
     def __init__(self, pin_interrupts):
         self.__pin_interrupts = pin_interrupts
+        self.__state_machine = StateMachine()
+
+        fail_safe.set_wait_time(80)
+        fail_safe.observe_fail_safe.register(self.__state_machine.stop)
 
     def start(self):
         self.__state_machine.start()
         watt.observable_kW_update.register(self.__state_machine)
-        watt.observable_pulse.register(self.__fail_safe)
+        watt.observable_pulse.register(fail_safe)
         watt.start(self.__pin_interrupts)
-        self.__fail_safe.start()
+        fail_safe.start()
 
     def stop(self):
-        self.__fail_safe.stop()
+        fail_safe.stop()
         watt.stop()
         watt.observable_kW_update.unregister(self.__state_machine)
-        watt.observable_pulse.unregister(self.__fail_safe)
+        watt.observable_pulse.unregister(fail_safe)
         self.__state_machine.stop()
 
     def update(self, relay):
