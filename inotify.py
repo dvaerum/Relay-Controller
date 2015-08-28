@@ -7,48 +7,7 @@ from time import sleep
 from lib.observer import Observer
 
 
-class Inotify(Thread):
-    __reload_function = None
-    __reload_function_args = None
-    __run = None
-    __timeout = 1000  # milliseconds
-
-    def __init__(self, config_file):
-        Thread.__init__(self, name="Thread Inotify.run")
-
-        self.__config_file = config_file
-
-        self.wm = pyinotify.WatchManager()
-        self.notifier = pyinotify.Notifier(self.wm)
-        self.__add_watch()
-
-    def run(self):
-        self.__run = True
-        while self.__run:
-            if self.notifier.check_events(self.__timeout):
-                self.notifier.read_events()
-                self.notifier.process_events()
-
-                if not self.wm.get_wd(self.__config_file):
-                    self.__add_watch()
-
-    def __add_watch(self):
-        self.wm.add_watch(self.__config_file, pyinotify.IN_MODIFY, proc_fun=self.__reload)
-
-    def stop(self):
-        self.__run = False
-        self.notifier.stop()
-
-    def __reload(self, event):
-        if self.__reload_function:
-            self.__reload_function(event, *self.__reload_function_args)
-
-    def set_reload_function(self, reload_function, *args):
-        self.__reload_function = reload_function
-        self.__reload_function_args = args
-
-
-class __Inotify_v2():
+class __Inotify():
     __is_run = False
     __thread = None
     __timeout = 1000  # milliseconds
@@ -63,7 +22,7 @@ class __Inotify_v2():
             raise FileNotFoundError("The file {0} does not exist".format(file))
         elif file not in self.__files:
             self.__files[file] = Observable()
-            self.__add_watch(file)
+            # self.__add_watch(file) # TODO: Test case for if this code was there
         else:
             raise FileExistsError("The file {0} is already added".format(file))
 
@@ -118,7 +77,7 @@ class __Inotify_v2():
             self.__wm.add_watch(file, pyinotify.IN_MODIFY, proc_fun=self.__files[file].update_observers)
 
 
-inotify = __Inotify_v2()
+inotify = __Inotify()
 
 
 class Tester(Observer):
