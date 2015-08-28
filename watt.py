@@ -10,7 +10,7 @@ except SystemError:
     import lib.fakegpio as GPIO
 
 
-class Watt:
+class __Watt:
     observable_pulse = Observable()
     observable_kW_update = Observable()
 
@@ -19,7 +19,7 @@ class Watt:
 
     __max_time = 60
     __max_pulses = 5
-    __
+    # TODO: create a variable to hold the value for "debounce_timeout_ms"
 
     __pin_interrupts = None
 
@@ -64,4 +64,4 @@ class Watt:
         self.observable_kW_update.update_observers(self.__kW, seconds)
 
 
-watt = Watt()
+watt = __Watt()
