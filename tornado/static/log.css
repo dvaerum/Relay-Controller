@@ -1,0 +1,10 @@
+
+.log_box {
+    overflow:auto;
+    height: 200px;
+    width: 500px;
+}
+
+.log_box p {
+    margin: 1px;
+}
