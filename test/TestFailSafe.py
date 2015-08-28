@@ -1,9 +1,9 @@
 from time import sleep
 from fail_safe import fail_safe
+from lib.observer import Observer
+import unittest
 
 __author__ = 'alt_mulig'
-
-import unittest
 
 
 class MyTestCase(unittest.TestCase):
@@ -32,7 +32,7 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(self.notify.get())
 
 
-class Notify:
+class Notify(Observer):
     __notified = False
 
     def update(self, *args, **kwargs):
