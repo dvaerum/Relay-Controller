@@ -1,0 +1,54 @@
+pre_install() {
+    test -e .
+#   if [ -f /usr/lib/systemd/system/relay-controller.service ]; then
+#       echo "Stopping Plexmediaserver before starting..."
+#       systemctl stop relay-controller
+#   fi;
+}
+
+post_install() {
+    systemctl --system daemon-reload
+    ### Create group if does not exist
+    if [ ! `getent passwd relay-controller` ]; then
+        useradd -r -s /bin/bash -d /opt/relay-controller -U relay-controller
+        if [ ! $? -eq 0 ]
+        then
+            echo "WARNING COULDN'T CREATE AURCOMPILER USERID, MAKE SURE I HAVE PERMISSON TO DO THAT!"
+            exit 1
+        fi
+    fi;
+  
+    chown -R relay-controller:relay-controller /opt/relay-controller
+}
+
+pre_upgrade() {
+    
+    if [ $(systemctl is-enabled relay-controller.service) == "enabled" ]; then
+        echo "Stopping the relay-controller service"
+        systemctl stop relay-controller.service
+    fi
+}
+
+post_upgrade() {
+    systemctl --system daemon-reload
+#   . /etc/conf.d/relay-controller
+#   rm -f ${PLEX_MEDIA_SERVER_HOME}/start.sh
+#   ln -s ${PLEX_MEDIA_SERVER_HOME}/start_pms ${PLEX_MEDIA_SERVER_HOME}/start.sh
+    chown -R relay-controller:relay-controller /opt/relay-controller
+#   echo "Starting relay-controller..."
+#   systemctl start relay-controller
+
+    if [ $(systemctl is-enabled relay-controller.service) == "enabled" ]; then
+        echo "Starting the relay-controller service"
+        systemctl start relay-controller.service
+    fi
+}
+
+pre_remove() {
+    test -e .
+}
+
+post_remove() {
+    systemctl --system daemon-reload
+    userdel relay-controller
+}

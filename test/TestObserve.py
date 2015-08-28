@@ -26,7 +26,7 @@ class AnObserver(Observer):
         return
 
 
-class observerable_test(unittest.TestCase):
+class TestObserve(unittest.TestCase):
 
     def setUp(self):
         self.observable = Observable()
