@@ -1,16 +1,17 @@
 #!/usr/bin/env python
-
-__author__ = 'Dennis Vestergaard Værum'
-
 import sys
 import os
 import signal
 from pi import PI
 from config import Config
 from inotify import inotify
+from server_api import server
+from watt import watt
 
+__author__ = 'Dennis Vestergaard Værum'
 
 pi = None
+
 
 def signal_handler(signal, frame):
     signal_handler_sigterm(signal, frame)
@@ -20,6 +21,7 @@ def signal_handler_sigterm(signal, frame):
     print("Exiting...")
     inotify.stop()
     pi.stop()
+    server.stop()
     print("Exited")
     sys.exit(0)
 
@@ -48,6 +50,9 @@ def main():
     inotify.add_file(config_file)
     inotify.register(config_file, conf)
     inotify.start()
+
+    server.start()
+    watt.observable_kW_update.register(server)
 
     signal.signal(signal.SIGTERM, signal_handler_sigterm)
     signal.signal(signal.SIGHUP, signal_handler_sigkill)
