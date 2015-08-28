@@ -1,0 +1,26 @@
+[Unit]
+Description=A controller to turn relays on/off base on a pulse
+Requires=multi-user.target
+
+
+[Service]
+Type=simple
+# TODO: make it work with the user 'relay-controller'
+User=root
+Group=relay-controller
+# TODO: remove UMask then 'relay-controller' works as user
+UMask=002
+# TODO: remove WorkingDirectory then 'relay-controller' works as user
+WorkingDirectory=/opt/relay-controller
+
+ExecStart=/opt/relay-controller/daemon.py
+#ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+
+TimeoutStopSec=5s
+RestartSec=5s
+Restart=on-failure
+
+
+[Install]
+WantedBy=multi-user.target
