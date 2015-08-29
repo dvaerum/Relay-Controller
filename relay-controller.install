@@ -1,3 +1,5 @@
+start_service=0
+
 pre_install() {
     test -e .
 #   if [ -f /usr/lib/systemd/system/relay-controller.service ]; then
@@ -23,8 +25,9 @@ post_install() {
 
 pre_upgrade() {
     
-    if [ $(systemctl is-enabled relay-controller.service) == "enabled" ]; then
+    if [ $(systemctl is-active relay-controller.service) == "active" ]; then
         echo "Stopping the relay-controller service"
+        start_service=1
         systemctl stop relay-controller.service
     fi
 }
@@ -38,14 +41,14 @@ post_upgrade() {
 #   echo "Starting relay-controller..."
 #   systemctl start relay-controller
 
-    if [ $(systemctl is-enabled relay-controller.service) == "enabled" ]; then
+    if [ $start_service == 1 ]; then
         echo "Starting the relay-controller service"
         systemctl start relay-controller.service
     fi
 }
 
 pre_remove() {
-    test -e .
+    systemctl stop relay-controller.service
 }
 
 post_remove() {
