@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from socket import AF_INET, AF_UNIX
 import sys
 import os
 import signal
@@ -52,7 +53,11 @@ def main():
     inotify.register(config_file, conf)
     inotify.start()
 
-    server.start()
+    if len(sys.argv) == 3:
+        server.start(family=AF_INET, address=(sys.argv[1], int(sys.argv[2])))
+    else:
+        server.start(family=AF_UNIX, address='/tmp/relay.sock')
+
     watt.observable_kW_update.register(server)
     state_machine.observe.register(server)
 

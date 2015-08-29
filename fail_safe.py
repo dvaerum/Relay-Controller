@@ -36,6 +36,7 @@ class __FailSafe(Observer):
         while self.__thread_running:
             if self.__time_last_updated and perf_counter() > self.__time_last_updated + self.__wait_time:
                 self.observe_fail_safe.update_observers()
+                self.__time_last_updated = None
 
                 # TODO: Make it only print on debug
                 print("Runs fail_safe because there hasn't been a pulse in {0}s".format(self.__wait_time))

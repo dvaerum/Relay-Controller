@@ -1,7 +1,9 @@
+from socket import AF_INET, AF_UNIX
 from threading import Thread
 import threading
 from time import sleep
 import os
+import sys
 
 from tornado.websocket import WebSocketHandler, tornado
 from tornado.escape import json_encode
@@ -27,8 +29,8 @@ def count_thread():
 class KeepConnected:
     __thread = None
 
-    def __init__(self, socket_file):
-        self.client = Client(socket_file)
+    def __init__(self, family, address):
+        self.client = Client(family, address)
 
     def start(self):
         if not self.__thread or not self.__thread.is_alive():
@@ -45,8 +47,10 @@ class KeepConnected:
                 print("Tries the connect again")
                 sleep(1)
 
-
-keep_connected = KeepConnected('/tmp/relay.sock')
+if len(sys.argv) == 3:
+    keep_connected = KeepConnected(family=AF_INET, address=(sys.argv[1], int(sys.argv[2])))
+else:
+    keep_connected = KeepConnected(family=AF_UNIX, address='/tmp/relay.sock')
 client = keep_connected.client
 
 
@@ -97,8 +101,7 @@ class Application(tornado.web.Application):
 
 def main():
     app = Application()
-    app.listen(8001)
-    keep_connected = KeepConnected('/tmp/relay.sock')
+    app.listen(8000, address='dennis-pc')
     keep_connected.start()
     keep_connected.client.observe_kW.register(LogSocketHandler)
     IOLoop.current().start()

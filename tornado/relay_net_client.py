@@ -1,5 +1,5 @@
 from queue import Queue, Empty
-from socket import socket
+from socket import socket, AF_UNIX
 import pickle
 from threading import Thread
 from time import sleep
@@ -29,8 +29,11 @@ class Client(network_api.NetworkAPI):
         while not self.__is_connected and count < self.__max_connection_tries:
             try:
                 count += 1
-                # self._socket.connect(self.socket_file)
-                self._socket.connect(('127.0.0.1', self._port))
+                if self._family == AF_UNIX:
+                    self._socket.connect(self._socket_file)
+                else:
+                    self._socket.connect((self._host, self._port))
+
                 self.__is_connected = True
 
                 if not self.__Thread or not self.__Thread.is_alive():

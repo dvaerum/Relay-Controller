@@ -2,7 +2,7 @@ from os.path import exists
 from os import remove
 from queue import Queue, Empty
 from selectors import EVENT_READ
-from socket import socket
+from socket import socket, AF_UNIX
 import pickle
 from threading import Thread
 from time import sleep
@@ -19,12 +19,16 @@ class __ServerAPI(network_api.NetworkAPI, Observer):
     __Thread = None
     __running = False
 
-    def __init__(self, socket_file):
-        # TODO: Already exist exception
-        # if exists('/tmp/relay.sock'):
-        #     remove('/tmp/relay.sock')
+    def __init__(self):
+        pass
 
-        super().__init__(socket_file=socket_file)
+    def start(self, family=AF_UNIX, address='/tmp/relay.sock'):
+        # TODO: Already exist exception
+        if family == AF_UNIX and exists('/tmp/relay.sock'):
+            remove('/tmp/relay.sock')
+
+        super().__init__(family, address)
+        super().start()
 
     def update(self, *args, **kwargs):
         self.__update_queue.put(args)
@@ -91,8 +95,11 @@ class __ServerAPI(network_api.NetworkAPI, Observer):
         conn.close()
 
     def _setup(self):
-        # self._socket.bind(self.socket_file)
-        self._socket.bind(('127.0.0.1', self._port))
+        if self._family == AF_UNIX:
+            self._socket.bind(self._socket_file)
+        else:
+            self._socket.bind((self._host, self._port))
+
         self._socket.listen(5)
 
         if not self.__Thread or not self.__Thread.is_alive():
@@ -104,14 +111,14 @@ class __ServerAPI(network_api.NetworkAPI, Observer):
     def _teardown(self):
         self.__close_all_conn()
         self.__running = False
-        if exists(self.socket_file):
-            remove(self.socket_file)
+        if exists(self._socket_file):
+            remove(self._socket_file)
 
     def _receive(self, sock: socket):
         self.__accept(sock)
 
 
-server = __ServerAPI('/tmp/relay.sock')
+server = __ServerAPI()
 
 
 def main():

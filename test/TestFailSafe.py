@@ -18,8 +18,15 @@ class MyTestCase(unittest.TestCase):
     def tearDownClass(cls):
         fail_safe.stop()
 
-    def test_something(self):
+    def setUp(self):
         self.notify.reset()
+        fail_safe.update()
+        while not self.notify.get():
+            sleep(0.1)
+        self.assertTrue(self.notify.get())
+        self.notify.reset()
+
+    def test_something(self):
         fail_safe.update()
         sleep(2)
         self.assertFalse(self.notify.get())
@@ -30,6 +37,23 @@ class MyTestCase(unittest.TestCase):
 
         sleep(2)
         self.assertTrue(self.notify.get())
+
+    def test_moretest(self):
+        fail_safe.update()
+        sleep(2)
+        self.assertFalse(self.notify.get())
+        self.notify.reset()
+        sleep(2)
+        self.assertTrue(self.notify.get())
+        self.notify.reset()
+        sleep(3)
+        self.assertFalse(self.notify.get())
+        self.notify.reset()
+        sleep(3)
+        self.assertFalse(self.notify.get())
+        self.notify.reset()
+
+
 
 
 class Notify(Observer):

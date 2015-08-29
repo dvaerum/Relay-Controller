@@ -6,11 +6,11 @@ from lib.observable import Observable
 
 __author__ = 'alt_mulig'
 
-COM_KILOWATT =  0b00000001
-COM_RELAY =     0b00000010
+COM_KILOWATT = 0b00000001
+COM_RELAY = 0b00000010
 
-STA_UPDATE =    0b00000001
-STA_RELOAD =    0b00000010
+STA_UPDATE = 0b00000001
+STA_RELOAD = 0b00000010
 
 
 class NetworkAPI(object):
@@ -19,19 +19,32 @@ class NetworkAPI(object):
     observe_start = Observable()
     observe_stop = Observable()
 
-    _socket = None
     _running = False
     _thread = None
+    _socket = None
 
-    _port = 50007
+    _family = None
+    _socket_file = None
+    _host = None
+    _port = None
 
-    def __init__(self, socket_file: str):
-        self.socket_file = socket_file
+    def __init__(self, family, address):
+        self._family = family
+        if family == AF_UNIX:
+            self._socket_file = address
+        elif family == AF_INET:
+            if len(address) == 2:
+                self._host = address[0]
+                self._port = address[1]
+            else:
+                raise TypeError('Then AF_INET address is a tuple (IP/HOST, PORT)')
+        else:
+            raise TypeError('family is either AF_UNIT or AF_INET')
 
     def start(self):
         if not self._running:
             # self._socket = socket(family=AF_UNIX, type=SOCK_STREAM)
-            self._socket = socket(family=AF_INET, type=SOCK_STREAM)
+            self._socket = socket(family=self._family, type=SOCK_STREAM)
             # self._socket.setblocking(False)
 
             if self._setup():

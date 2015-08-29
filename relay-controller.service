@@ -11,7 +11,7 @@ Group=relay-controller
 # TODO: remove UMask then 'relay-controller' works as user
 UMask=002
 # TODO: remove WorkingDirectory then 'relay-controller' works as user
-WorkingDirectory=/opt/relay-controller
+WorkingDirectory=/opt/relay-controller "" 50007
 
 ExecStart=/opt/relay-controller/daemon.py
 #ExecReload=/bin/kill -HUP $MAINPID
