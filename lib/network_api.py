@@ -1,15 +1,16 @@
 from abc import abstractmethod, ABCMeta
 from selectors import DefaultSelector, EVENT_READ
-from socket import socket, AF_UNIX, SOCK_STREAM
+from socket import socket, AF_UNIX, AF_INET, SOCK_STREAM
 from threading import Thread
 from lib.observable import Observable
 
 __author__ = 'alt_mulig'
 
 COM_KILOWATT =  0b00000001
+COM_RELAY =     0b00000010
 
 STA_UPDATE =    0b00000001
-STA_STATUS =    0b00000010
+STA_RELOAD =    0b00000010
 
 
 class NetworkAPI(object):
@@ -22,13 +23,16 @@ class NetworkAPI(object):
     _running = False
     _thread = None
 
+    _port = 50007
+
     def __init__(self, socket_file: str):
         self.socket_file = socket_file
 
     def start(self):
         if not self._running:
-            self._socket = socket(family=AF_UNIX, type=SOCK_STREAM)
-            self._socket.setblocking(False)
+            # self._socket = socket(family=AF_UNIX, type=SOCK_STREAM)
+            self._socket = socket(family=AF_INET, type=SOCK_STREAM)
+            # self._socket.setblocking(False)
 
             if self._setup():
                 self._selector = DefaultSelector()

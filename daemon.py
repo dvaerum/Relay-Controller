@@ -6,6 +6,7 @@ from pi import PI
 from config import Config
 from inotify import inotify
 from server_api import server
+from state_machine import state_machine
 from watt import watt
 
 __author__ = 'Dennis Vestergaard Værum'
@@ -53,6 +54,7 @@ def main():
 
     server.start()
     watt.observable_kW_update.register(server)
+    state_machine.observe.register(server)
 
     signal.signal(signal.SIGTERM, signal_handler_sigterm)
     signal.signal(signal.SIGHUP, signal_handler_sigkill)

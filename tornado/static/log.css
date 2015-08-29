@@ -2,7 +2,19 @@
 .log_box {
     overflow:auto;
     height: 200px;
+}
+
+.relays, .log_box {
     width: 500px;
+}
+
+.relays table {
+    border: 1px solid black;
+    width: 100%;
+}
+
+.relays #header td {
+    text-align: center;
 }
 
 .log_box p {

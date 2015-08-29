@@ -17,8 +17,8 @@ ExecStart=/opt/relay-controller/daemon.py
 #ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill -TERM $MAINPID
 
-TimeoutStopSec=5s
-RestartSec=5s
+TimeoutStopSec=10s
+RestartSec=75s
 Restart=on-failure
 
 

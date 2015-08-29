@@ -1,5 +1,6 @@
 import time
 import sys
+from lib.observable import Observable
 from lib.observer import Observer
 
 try:
@@ -66,6 +67,12 @@ class RelayState:
 
     def get_relay_number(self):
         return self.__relay_number
+
+    def is_relay_on(self):
+        if self.__relay_switch_is == _ON:
+            return True
+        else:
+            return False
 
     def update(self, kilo_watt, switch_on, switch_off):
         self.__kilo_watt = kilo_watt
@@ -170,6 +177,8 @@ class __StateMachine(Observer):
     __end = None
     __current_state = None
 
+    observe = Observable()
+
     def __init__(self):
         self.__start = StateZero()
         pass
@@ -236,7 +245,12 @@ class __StateMachine(Observer):
 
     def next(self, kW, time_interval):
         if self.__current_state:
+            temp = self.__current_state
             self.__current_state = self.__current_state.run(kW)
+            # if not temp == self.__current_state:
+            self.observe.update_observers(self.__current_state.get_relay_number(),
+                                              self.__current_state.is_relay_on())
+
             if debug:
                 debug_print_gpio(self)
         else:

@@ -62,8 +62,7 @@ class LogSocketHandler(WebSocketHandler, Observer):
     @classmethod
     def update(cls, data):
         for waiter in cls.waiters:
-            waiter.write_message(json_encode({"kilowatt": data[0],
-                                              "second": data[1]}))
+            waiter.write_message(json_encode(data))
 
     def open(self):
         LogSocketHandler.waiters.add(self)
@@ -98,7 +97,7 @@ class Application(tornado.web.Application):
 
 def main():
     app = Application()
-    app.listen(8000)
+    app.listen(8001)
     keep_connected = KeepConnected('/tmp/relay.sock')
     keep_connected.start()
     keep_connected.client.observe_kW.register(LogSocketHandler)
