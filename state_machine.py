@@ -165,7 +165,7 @@ class StateZero:
         raise ValueError("The input value has to be 'ON' or 'OFF'")
 
 
-class StateMachine(Observer):
+class __StateMachine(Observer):
     __start = None
     __end = None
     __current_state = None
@@ -254,6 +254,7 @@ class StateMachine(Observer):
         else:
             return False
 
+state_machine = __StateMachine()
 
 def debug_print_gpio(sm):
     current_state = sm._StateMachine__start
@@ -309,28 +310,27 @@ def debug_print_gpio(sm):
 
 
 def main():
-    sm = StateMachine()
-    sm.add_relay(RelayState(10, 5, 5, 10, 1))
-    sm.add_relay(RelayState(10, 5, 5, 9, 2))
-    sm.add_relay(RelayState(10, 5, 5, 11, 3))
-    sm.add_relay(RelayState(10, 5, 5, 22, 4))
-    sm.start()
+    state_machine.add_relay(RelayState(10, 5, 5, 10, 1))
+    state_machine.add_relay(RelayState(10, 5, 5, 9, 2))
+    state_machine.add_relay(RelayState(10, 5, 5, 11, 3))
+    state_machine.add_relay(RelayState(10, 5, 5, 22, 4))
+    state_machine.start()
 
     tmp = None
     while not (tmp == "exit" or tmp == ""):
         tmp = input("kW? ")
         try:
             tmp2 = float(tmp)
-            sm.next(tmp2, None)
+            state_machine.next(tmp2, None)
         except (TypeError, ValueError):
             print("Error happened!!!")
         if tmp == "update":
-            sm.add_relay(RelayState(8, 2, 5, 10, 1))
-            sm.add_relay(RelayState(8, 2, 5, 9, 2))
-            sm.add_relay(RelayState(8, 2, 5, 11, 3))
-            sm.add_relay(RelayState(9, 2, 5, 22, 4))
+            state_machine.add_relay(RelayState(8, 2, 5, 10, 1))
+            state_machine.add_relay(RelayState(8, 2, 5, 9, 2))
+            state_machine.add_relay(RelayState(8, 2, 5, 11, 3))
+            state_machine.add_relay(RelayState(9, 2, 5, 22, 4))
 
-    sm.stop()
+    state_machine.stop()
     GPIO.cleanup()
 
 

@@ -2,51 +2,57 @@ __author__ = 'alt_mulig'
 
 import unittest
 from state_machine import RelayState
-from state_machine import StateMachine
+from state_machine import state_machine
 
 
 class TestStateMachine(unittest.TestCase):
-    def setUp(self):
-        self.sm = StateMachine()
-
+    @classmethod
+    def setUpClass(cls):
         # self.relay_state = RelayState(10, 3, 9, 11, 37)
-        self.rs = [RelayState(10,   1, 2, 10, 1),
-                   RelayState(10,   1, 2,  9, 2),
-                   RelayState(10,   1, 2, 11, 3),
-                   RelayState(10,   1, 2, 22, 4)]
+        cls.rs = [RelayState(10, 1, 2, 10, 1),
+                   RelayState(10, 1, 2,  9, 2),
+                   RelayState(10, 1, 2, 11, 3),
+                   RelayState(10, 1, 2, 22, 4)]
 
-        self.sm.add_relay(self.rs[1])
-        self.sm.add_relay(self.rs[0])
-        self.sm.add_relay(self.rs[3])
-        self.sm.add_relay(self.rs[2])
+        state_machine.add_relay(cls.rs[1])
+        state_machine.add_relay(cls.rs[0])
+        state_machine.add_relay(cls.rs[3])
+        state_machine.add_relay(cls.rs[2])
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        state_machine.stop()
 
     def test_01_start(self):
-        self.assertEqual(self.sm._StateMachine__current_state, None)
-        self.sm.start()
-        self.sm.start()
-        self.assertEqual(self.sm._StateMachine__current_state,
-                         self.sm._StateMachine__start.next)
+        self.assertEqual(state_machine._StateMachine__current_state, None)
+        state_machine.start()
+        state_machine.start()
+        self.assertEqual(state_machine._StateMachine__current_state,
+                         state_machine._StateMachine__start.next)
 
     def test_02_next(self):
-        self.assertRaises(IndexError, self.sm.next, 10.5, None)
-        self.sm.start()
-        self.assertEqual(self.sm.next(10.5, None), None)
+        with self.assertRaises(IndexError):
+            state_machine.next(10.5, None)
+        state_machine.start()
+        self.assertEqual(state_machine.next(10.5, None), None)
 
     def test_03_stop(self):
-        self.sm.start()
-        self.sm.stop()
-        self.sm.stop()
-        self.assertEqual(self.sm._StateMachine__current_state, None)
+        state_machine.start()
+        state_machine.stop()
+        state_machine.stop()
+        self.assertEqual(state_machine._StateMachine__current_state, None)
 
     def test_04_is_started(self):
-        self.assertEqual(self.sm._StateMachine__current_state, None)
-        self.sm.start()
-        self.assertEqual(self.sm._StateMachine__current_state,
-                         self.sm._StateMachine__start.next)
+        self.assertEqual(state_machine._StateMachine__current_state, None)
+        state_machine.start()
+        self.assertEqual(state_machine._StateMachine__current_state,
+                         state_machine._StateMachine__start.next)
 
     def test_05_add_relay(self):
         # "cs" stands for "current_state"
-        cs = self.sm._StateMachine__start
+        cs = state_machine._StateMachine__start
         while not cs.next:
             cs = cs.next
             i = cs.get_relay_number()-1
@@ -66,18 +72,18 @@ class TestStateMachine(unittest.TestCase):
                 self.assertEqual(cs.next.get_relay_number(), i+1)
 
     def test_06_add_relay(self):
-        self.sm.add_relay(self.rs[0])
-        self.sm.add_relay(self.rs[1])
-        self.sm.add_relay(self.rs[2])
-        self.sm.add_relay(self.rs[3])
+        state_machine.add_relay(self.rs[0])
+        state_machine.add_relay(self.rs[1])
+        state_machine.add_relay(self.rs[2])
+        state_machine.add_relay(self.rs[3])
 
         self.test_05_add_relay()
 
     def test_07_add_relay(self):
-        self.sm.add_relay(self.rs[3])
-        self.sm.add_relay(self.rs[2])
-        self.sm.add_relay(self.rs[1])
-        self.sm.add_relay(self.rs[0])
+        state_machine.add_relay(self.rs[3])
+        state_machine.add_relay(self.rs[2])
+        state_machine.add_relay(self.rs[1])
+        state_machine.add_relay(self.rs[0])
 
         self.test_05_add_relay()
 
