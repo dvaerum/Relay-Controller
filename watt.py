@@ -15,7 +15,9 @@ class __Watt:
     observable_kW_update = Observable()
 
     __pulse = deque([])
+
     __kW = 0.0
+    __seconds = 0
 
     __max_time = 60
     __max_pulses = 5
@@ -61,10 +63,11 @@ class __Watt:
 
     def __calc_kW(self, seconds):
         self.__kW = ((len(self.__pulse)) / seconds) / 0.036
+        self.__seconds = 0
         self.observable_kW_update.update_observers(self.__kW, seconds)
 
-    def get_kW(self):
-        return self.__kW
+    def get_kW_and_time(self):
+        return self.__kW, self.__seconds
 
 
 watt = __Watt()
