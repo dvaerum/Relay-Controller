@@ -247,9 +247,9 @@ class __StateMachine(Observer):
         if self.__current_state:
             temp = self.__current_state
             self.__current_state = self.__current_state.run(kW)
-            if hasattr(self.__current_state, "is_relay_on"):#and not temp == self.__current_state:
+            if hasattr(self.__current_state, "is_relay_on") and not temp == self.__current_state:
                 self.observe.update_observers(self.__current_state.get_relay_number(),
-                                                  self.__current_state.is_relay_on())
+                                              self.__current_state.is_relay_on())
 
             if debug:
                 debug_print_gpio(self)
@@ -267,6 +267,20 @@ class __StateMachine(Observer):
             return True
         else:
             return False
+
+    def get_relay_current_status(self):
+        return self.__current_state.get_relay_number(), self.__current_state.is_relay_on()
+
+    def get_relay_full_status(self):
+        r = []
+        current = self.__start.next
+        while current:
+            r.append((current.get_relay_number(), current.is_relay_on()))
+            current = current.next
+        return r
+
+
+
 
 state_machine = __StateMachine()
 
