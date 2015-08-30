@@ -63,5 +63,8 @@ class __Watt:
         self.__kW = ((len(self.__pulse)) / seconds) / 0.036
         self.observable_kW_update.update_observers(self.__kW, seconds)
 
+    def get_kW(self):
+        return self.__kW
+
 
 watt = __Watt()
