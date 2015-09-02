@@ -4,6 +4,7 @@ import threading
 from time import sleep
 import os
 import sys
+from lib import network_api
 
 from tornado.websocket import WebSocketHandler, tornado
 from tornado.escape import json_encode
@@ -70,6 +71,9 @@ class LogSocketHandler(WebSocketHandler, Observer):
     def open(self):
         LogSocketHandler.waiters.add(self)
         print("WebSocket opened")
+        self.write_message(json_encode({'COMMAND': network_api.COM_RELAY,
+                                        'STATUS': network_api.STA_RELOAD,
+                                        'DATA': client.get_relays()}))
 
     def on_message(self, message):
         # TODO: Send old data

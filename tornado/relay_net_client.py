@@ -15,7 +15,7 @@ class Client(network_api.NetworkAPI):
     __max_connection_tries = 10
 
     # TODO: Make this non-hardcoded
-    __relay = [False, False, False, False]
+    __relays = [False, False, False, False]
     __kilowatt = (0.0, 0.0)
 
     __update_queue = Queue()
@@ -74,22 +74,21 @@ class Client(network_api.NetworkAPI):
 
     def __recv_relay(self, package, conn):
         if package['STATUS'] == network_api.STA_UPDATE:
-            if package['DATA'][0] > 1:
-                self.__relay[package['DATA'][0] - 2] = True
+            for relay in self.__relays:
+                for package_relay in package['DATA']:
+                    if relay[0] == package_relay[0]:
+                        relay = package_relay
 
-            self.__relay[package['DATA'][0] - 1] = package['DATA'][1]
-
-            if package['DATA'][0] < 4:
-                self.__relay[package['DATA'][0] - 0] = False
-
-            package["DATA"] = self.__relay
             self.observe_kW.update_observers(package)
         elif package['STATUS'] == network_api.STA_RELOAD:
-            self.__relay = package["DATA"]
+            self.__relays = package['DATA']
             self.observe_kW.update_observers(package)
 
     def is_connected(self):
         return self.__is_connected
+
+    def get_relays(self):
+        return self.__relays
 
 
 def main():

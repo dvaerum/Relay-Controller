@@ -177,7 +177,7 @@ class __StateMachine(Observer):
     __end = None
     __current_state = None
 
-    observe = Observable()
+    observe_change = Observable()
 
     def __init__(self):
         self.__start = StateZero()
@@ -248,8 +248,8 @@ class __StateMachine(Observer):
             temp = self.__current_state
             self.__current_state = self.__current_state.run(kW)
             if hasattr(self.__current_state, "is_relay_on") and not temp == self.__current_state:
-                self.observe.update_observers(self.__current_state.get_relay_number(),
-                                              self.__current_state.is_relay_on())
+                self.observe_change.update_observers((temp.get_relay_number(), temp.is_relay_on()),
+                                                     (self.__current_state.get_relay_number(), self.__current_state.is_relay_on()))
 
             if debug:
                 debug_print_gpio(self)

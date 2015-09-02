@@ -44,8 +44,8 @@
 
     relays = function (data) {
         for (i = 0; i < data.length; i++) {
-            relay = $("#status > #" + (i+1))
-            if (data[i]) {
+            relay = $("#status > #" + (data[i][0]))
+            if (data[i][1]) {
                 relay.css("background-color", "green")
             } else {
                 relay.css("background-color", "red")

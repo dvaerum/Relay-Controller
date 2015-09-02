@@ -58,7 +58,7 @@ def main():
         server.start(family=AF_UNIX, address='/tmp/relay.sock')
 
     watt.observable_kW_update.register(server.update_kW)
-    state_machine.observe.register(server.update_relay)
+    state_machine.observe_change.register(server.update_relay)
 
     signal.signal(signal.SIGTERM, signal_handler_sigterm)
     signal.signal(signal.SIGHUP, signal_handler_sigkill)
