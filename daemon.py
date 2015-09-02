@@ -46,7 +46,6 @@ def main():
 
     conf.load()
 
-    # pi.add_relay(conf.get_relays())
     pi.start()
 
     inotify.add_file(config_file)
@@ -58,8 +57,8 @@ def main():
     else:
         server.start(family=AF_UNIX, address='/tmp/relay.sock')
 
-    watt.observable_kW_update.register(server)
-    state_machine.observe.register(server)
+    watt.observable_kW_update.register(server.update_kW)
+    state_machine.observe.register(server.update_relay)
 
     signal.signal(signal.SIGTERM, signal_handler_sigterm)
     signal.signal(signal.SIGHUP, signal_handler_sigkill)

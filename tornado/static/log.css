@@ -4,19 +4,50 @@
     height: 200px;
 }
 
-.relays, .log_box {
+.relays, .log_box, .connection_status{
     width: 500px;
+    border-width: 1px;
+    border-color: black;
+    border-style: solid;
 }
 
-.relays table {
-    border: 1px solid black;
-    width: 100%;
-}
-
-.relays #header td {
+.connection_status {
     text-align: center;
 }
 
-.log_box p {
+.relays table {
+    width: 100%;
+    border-spacing: 0px;
+}
+
+.relays #header,#status td {
+    font-weight: bold;
+}
+
+.relays #header td:not(:first-child) {
+    text-align: center;
+}
+
+.log_box div {
     margin: 1px;
+}
+
+div.log_box {
+    font-family: Monospace;
+    font-size: larger;
+}
+
+.log_box div div:first-child {
+    display: inline-block;
+    /*margin-right: 15px;*/
+}
+
+.log_box div div:not(:first-child) {
+    display: inline-block;
+    /*width: 100%;
+    max-width: calc(100% - (168px + 21px));
+    position: relative;
+    margin-right: 3px;*/
+    float: right;
+    text-align: right
 }

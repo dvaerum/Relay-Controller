@@ -1,8 +1,12 @@
 from abc import abstractmethod, ABCMeta
-from selectors import DefaultSelector, EVENT_READ
+from queue import Queue, Empty
+from selectors import EVENT_READ
 from socket import socket, AF_UNIX, AF_INET, SOCK_STREAM
-from threading import Thread
+from threading import Thread, Lock
+import pickle
+from time import sleep
 from lib.observable import Observable
+from lib.sync_selector import SyncSelector
 
 __author__ = 'alt_mulig'
 
@@ -19,58 +23,155 @@ class NetworkAPI(object):
     observe_start = Observable()
     observe_stop = Observable()
 
-    _running = False
-    _thread = None
-    _socket = None
+    __send_queue = Queue()
+    __send_running = False
+    __send_thread = None
+
+    __recv_queue = Queue()
+    __recv_running = False
+    __recv_thread = None
+
+    __selector = None
+    __selector_queue = Queue()
+    __selector_running = False
+    __selector_thread = None
+    __selector_lock = Lock()
+
+    __running = False
 
     _family = None
-    _socket_file = None
-    _host = None
-    _port = None
+    _address = None
+    _socket = None
 
-    def __init__(self, family, address):
+    def __init_socket(self, family, address):
         self._family = family
         if family == AF_UNIX:
-            self._socket_file = address
+            if isinstance(address, str):
+                self._address = address
+            else:
+                raise TypeError('Then AF_UNIX, address must be a path (String)')
         elif family == AF_INET:
             if len(address) == 2:
-                self._host = address[0]
-                self._port = address[1]
+                self._address = address
             else:
-                raise TypeError('Then AF_INET address is a tuple (IP/HOST, PORT)')
+                raise TypeError('Then AF_INET, address must be a tuple (IP/HOST, PORT)')
         else:
             raise TypeError('family is either AF_UNIT or AF_INET')
 
-    def start(self):
-        if not self._running:
-            # self._socket = socket(family=AF_UNIX, type=SOCK_STREAM)
-            self._socket = socket(family=self._family, type=SOCK_STREAM)
-            # self._socket.setblocking(False)
+        self._socket = socket(family=self._family, type=SOCK_STREAM)
+        # self._socket.setblocking(False)
+
+    def start(self, family, address):
+        if not self.__running:
+            self.__init_socket(family, address)
 
             if self._setup():
-                self._selector = DefaultSelector()
-                self._selector.register(self._socket, EVENT_READ, self._receive)
-
-                self._running = True
-                self._thread = Thread(name="ServerAPI.__run()", target=self.__run)
-                self._thread.start()
+                self.__selector_setup()
+                self.__recv_setup()
+                self.__send_setup()
                 self.observe_start.update_observers()
 
-    def stop(self):
-        if self._running:
-            self._running = False
-            self._socket.close()
-            self._teardown()
-            self._selector.unregister(self._socket)
-            self._selector.close()
-            self.observe_stop.update_observers()
+    def __selector_setup(self):
+        self.__selector = SyncSelector()
+        callobj = self._selector_handler(self.__selector)
+        self.__selector.register(self._socket, EVENT_READ, callobj)
+        self.__selector_running = True
+        self.__selector_thread = Thread(name='ServerAPI.__selector_run()', target=self.__selector_run)
+        self.__selector_thread.start()
 
-    def __run(self):
-        while self._running:
-            events = self._selector.select(timeout=1)
-            for key, mask in events:
-                callback = key.data
-                callback(key.fileobj)
+    @abstractmethod
+    def _selector_handler(self, selector):
+        pass
+
+    def __selector_run(self):
+        while self.__selector_running:
+            events = self.__selector.select(timeout=1)
+            try:
+                for key, mask in events:
+                    if key.data is not None:
+                        key.data(key.fileobj)
+                    else:
+                        data_raw = self._recv_handler(key.fileobj)  # key.fileobj is a object of the class Socket
+                        if data_raw is not None:
+                            package = pickle.loads(data_raw)
+                            self.__recv_queue.put((package, key.fileobj))
+
+            # TODO: Create a close connection function for exceptions
+            except (EOFError, BlockingIOError) as e:
+                # TODO: Log "Lost connection to server"
+                self.stop()
+            # TODO: uncomment this excepting and find out how to handle it
+            except ConnectionResetError as e:
+                self.stop()
+
+    # TODO: Replace with close connection
+    @abstractmethod
+    def _recv_handler(self, conn):
+        return conn.recv(4096)
+
+    def __selector_teardown(self):
+        self.__selector_running = False
+        self.__selector.unregister(self._socket)
+        self.__selector.close()
+
+    def __recv_setup(self):
+        self.__recv_running = True
+        self.__recv_thread = Thread(name="ServerAPI.__recv_run()", target=self.__recv_run)
+        self.__recv_thread.start()
+
+    def __recv_run(self):
+        while self.__recv_running:
+            try:
+                package, conn = self.__recv_queue.get(True, 0.1)
+                self._receive(package, conn)
+            except Empty:
+                pass
+            except TypeError:
+                self._error_handler(conn)
+
+    def __recv_teardown(self):
+        self.__recv_running = False
+
+    def __send_setup(self):
+        self.__send_running = True
+        self.__send_thread = Thread(name="ServerAPI.__send_run()", target=self.__send_run)
+        self.__send_thread.start()
+
+    def __send_run(self):
+        while self.__send_running:
+            try:
+                package, conn = self.__send_queue.get(True, 0.1)
+                data_raw = pickle.dumps(package)
+                conn.send(data_raw)
+
+                # TODO: Find out if sleep is still necessary
+                sleep(0.01)
+            except Empty:
+                pass
+            except BrokenPipeError as e:
+                conn.close()
+            except OSError as e:
+                conn.close()
+
+    def _send(self, package, conn):
+        self.__send_queue.put((package, conn))
+
+    def __send_teardown(self):
+        self.__send_running = False
+
+    def stop(self):
+        if self.__running:
+            self.__selector_teardown()
+            self.__recv_teardown()
+            self.__send_teardown()
+            self.__selector_thread.join()
+            self.__recv_thread.join()
+            self.__send_thread.join()
+
+            self._socket.close()
+            self.__running = False
+            self._teardown()
+            self.observe_stop.update_observers()
 
     @abstractmethod
     def _setup(self):
@@ -81,5 +182,9 @@ class NetworkAPI(object):
         pass
 
     @abstractmethod
-    def _receive(self, sock: socket):
+    def _receive(self, package, conn):
         pass
+
+    @abstractmethod
+    def _error_handler(self, conn):
+        self.stop()

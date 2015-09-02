@@ -47,7 +47,7 @@ class KeepConnected:
                 print("Tries the connect again")
                 sleep(1)
 
-if len(sys.argv) == 3:
+if len(sys.argv) == 3 or len(sys.argv) == 4:
     keep_connected = KeepConnected(family=AF_INET, address=(sys.argv[1], int(sys.argv[2])))
 else:
     keep_connected = KeepConnected(family=AF_UNIX, address='/tmp/relay.sock')
@@ -56,8 +56,7 @@ client = keep_connected.client
 
 class LogHandler(RequestHandler):
     def get(self):
-        kW, sec = client.get_kilowatt()
-        self.render("log.html", kW=kW, sec=sec)
+        self.render("log.html")
 
 
 class LogSocketHandler(WebSocketHandler, Observer):
@@ -101,7 +100,10 @@ class Application(tornado.web.Application):
 
 def main():
     app = Application()
-    app.listen(8000, address='dennis-pc')
+    if len(sys.argv) == 4:
+        app.listen(int(sys.argv[3]), address='')
+    else:
+        app.listen(8002, address='')
     keep_connected.start()
     keep_connected.client.observe_kW.register(LogSocketHandler)
     IOLoop.current().start()
