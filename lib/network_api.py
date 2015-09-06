@@ -69,6 +69,7 @@ class NetworkAPI(object):
                 self.__selector_setup()
                 self.__recv_setup()
                 self.__send_setup()
+                self.__running = True
                 self.observe_start.update_observers()
 
     def __selector_setup(self):

@@ -5,12 +5,14 @@ import threading
 from time import sleep
 import os
 import sys
+import signal
 from lib import network_api
 
 from tornado.websocket import WebSocketHandler, tornado
 from tornado.escape import json_encode
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application, url
+from lib.log import logger
 
 from lib.observer import Observer
 from relay_net_client import Client
@@ -30,6 +32,7 @@ def count_thread():
 
 class KeepConnected:
     __thread = None
+    __running = False
 
     def __init__(self, family, address):
         self.client = Client(family, address)
@@ -37,16 +40,26 @@ class KeepConnected:
     def start(self):
         if not self.__thread or not self.__thread.is_alive():
             self.__thread = Thread(target=self.__run, name="KeepConnected.__run()")
+            self.__running = True
             self.__thread.start()
             self.client.observe_stop.register(self.start)
 
+    def stop(self):
+        self.client.observe_stop.unregister(self.start)
+        self.__running = False
+        self.client.stop()
+
+    def wait(self):
+        self.__thread.join()
+
     def __run(self):
-        while not self.client.is_connected():
+        while self.__running and not self.client.is_connected():
             self.client.start()
             if self.client.is_connected():
-                print("Connected to Server")
+                logger.info("Connected to Server")
+                self.__running = False
             else:
-                print("Tries the connect again")
+                logger.info("Tries the connect again")
                 sleep(1)
 
 if len(sys.argv) == 3 or len(sys.argv) == 4:
@@ -71,7 +84,7 @@ class LogSocketHandler(WebSocketHandler, Observer):
 
     def open(self):
         LogSocketHandler.waiters.add(self)
-        print("WebSocket opened")
+        logger.debug("WebSocket opened")
         self.write_message(json_encode({'COMMAND': network_api.COM_RELAY,
                                         'STATUS': network_api.STA_RELOAD,
                                         'DATA': client.get_relays()}))
@@ -84,7 +97,7 @@ class LogSocketHandler(WebSocketHandler, Observer):
 
     def on_close(self):
         LogSocketHandler.waiters.remove(self)
-        print("WebSocket closed")
+        logger.debug("WebSocket closed")
 
 
 class Application(tornado.web.Application):
@@ -102,6 +115,18 @@ class Application(tornado.web.Application):
         )
         tornado.web.Application.__init__(self, handlers, **settings)
 
+def signal_handler_sigterm(signal, frame):
+    logger.info("Exiting...")
+    IOLoop.current().stop()
+    keep_connected.stop()
+
+
+    logger.info("Exited")
+    sys.exit(0)
+
+
+def signal_handler_sigkill(signal, frame):
+    pass
 
 def main():
     app = Application()
@@ -111,6 +136,10 @@ def main():
         app.listen(8002, address='')
     keep_connected.start()
     keep_connected.client.observe_kW.register(LogSocketHandler)
+
+    signal.signal(signal.SIGTERM, signal_handler_sigterm)
+    signal.signal(signal.SIGHUP, signal_handler_sigkill)
+
     IOLoop.current().start()
 
 

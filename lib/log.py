@@ -1,5 +1,5 @@
 import logging
-from systemd import journal
+from systemd import journal, daemon
 
 file_log_info = 'log/relay-controller.log'
 file_log_error = 'log/relay-controller.err'
@@ -23,7 +23,8 @@ eh = logging.FileHandler(file_log_error)
 eh.setLevel(logging.ERROR)
 
 # create journal handler
-jh = journal.JournalHandler()
+jh = logging.StreamHandler()
+# jh = journal.JournalHandler()
 jh.setLevel(logging.DEBUG)
 
 # create formatter and add it to the handlers
