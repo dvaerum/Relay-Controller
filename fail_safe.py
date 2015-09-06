@@ -1,4 +1,4 @@
-from lib.log_v2 import logger
+from lib.log import logger
 from lib.observable import Observable
 from lib.observer import Observer
 from threading import Thread

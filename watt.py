@@ -1,4 +1,4 @@
-from lib.log_v2 import logger
+from lib.log import logger
 import time
 from collections import deque
 from lib.observable import Observable

@@ -3,7 +3,7 @@ import re
 import os.path
 from lib.observable import Observable
 from lib.observer import Observer
-from lib.log_v2 import logger
+from lib.log import logger
 
 
 class Config(Observer):

@@ -5,7 +5,7 @@ import signal
 import traceback
 
 try:
-    from lib.log_v2 import logger
+    from lib.log import logger
     from pi import PI
     from config import Config
     from inotify import inotify

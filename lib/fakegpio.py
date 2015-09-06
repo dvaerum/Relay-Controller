@@ -1,6 +1,6 @@
 from threading import Thread
 from time import sleep
-from lib.log_v2 import logger
+from lib.log import logger
 
 logger.info("Loading library: {0}".format(__name__))
 
