@@ -1,5 +1,5 @@
 import time
-import sys
+from lib.log_v2 import logger
 from lib.observable import Observable
 from lib.observer import Observer
 
@@ -8,24 +8,10 @@ try:
 except SystemError:
     import lib.fakegpio as GPIO
 
-from utilities import my_print as print
-from utilities import debug_print
-
-debug = False
-if len(sys.argv) > 1 and sys.argv[1] == "debug":
-    debug = True
 
 # Defines
 _OFF = 0
 _ON = 1
-
-
-# class NO:
-#     pass
-#
-#
-# class OFF:
-#     pass
 
 
 class RelayState:
@@ -45,8 +31,7 @@ class RelayState:
         self.__relay_number = relay_number
 
         if self.__relay_number:
-            print("Setup Relay {0}".format(self.__relay_number))
-            sys.stdout.flush()
+            logger.debug("Setup Relay {0}".format(self.__relay_number))
 
     def setup(self):
         # TODO explain why this cannot be inside "__init__"
@@ -100,8 +85,8 @@ class RelayState:
             self.__relay_switch_is = _ON
             return self.__return_state(self.next)
 
-        debug_print("┌───────────────────────────────┐\n│ count = {0:>5.2f}, switch = {1:>5.2f} │".
-                    format(timestamp - self.__switch_timestamp, self.__switch_on))
+        logger.debug("count = {0:>5.2f}, switch = {1:>5.2f}".
+                     format(timestamp - self.__switch_timestamp, self.__switch_on))
         return self
 
     def __prev_state(self):
@@ -114,8 +99,8 @@ class RelayState:
             self.__relay_switch_is = _OFF
             return self.__return_state(self.prev)
 
-        debug_print("┌───────────────────────────────┐\n│ count = {0:>5.2f}, switch = {1:>5.2f} │".
-                    format(timestamp - self.__switch_timestamp, self.__switch_off))
+        logger.debug("count = {0:>5.2f}, switch = {1:>5.2f}".
+                     format(timestamp - self.__switch_timestamp, self.__switch_off))
         return self
 
     def force_state(self, On_Off):
@@ -184,8 +169,7 @@ class __StateMachine(Observer):
         pass
 
     def update(self, *args, **kwargs):
-        print("{0:.3f} kW ({1:.2f}s)".format(args[0], args[1]))
-        sys.stdout.flush()
+        logger.info("{0:.3f} kW ({1:.2f}s)".format(args[0], args[1]))
 
         if self.is_started():
             self.next(args[0], args[1])
@@ -250,9 +234,6 @@ class __StateMachine(Observer):
             if hasattr(self.__current_state, "is_relay_on") and not temp == self.__current_state:
                 self.observe_change.update_observers((temp.get_relay_number(), temp.is_relay_on()),
                                                      (self.__current_state.get_relay_number(), self.__current_state.is_relay_on()))
-
-            if debug:
-                debug_print_gpio(self)
         else:
             raise IndexError("You have to call start first")
 
@@ -280,61 +261,7 @@ class __StateMachine(Observer):
         return r
 
 
-
-
 state_machine = __StateMachine()
-
-def debug_print_gpio(sm):
-    current_state = sm._StateMachine__start
-    print("├────────┬", end="")
-    while True:
-        current_state = current_state.next
-        if current_state.get_relay_number() == 3:
-            print("──────┼", end="")
-        elif current_state.get_relay_number() > 3:
-            print("──────┐", end="")
-        else:
-            print("──────┬", end="")
-        if not current_state.next:
-            break
-
-    current_state = sm._StateMachine__start
-    print("\n│ Relay  │", end="")
-    while True:
-        current_state = current_state.next
-        print(" {0:>3}  │".format(current_state.get_relay_number()), end="")
-        if not current_state.next:
-            break
-
-    current_state = sm._StateMachine__start
-    print("\n│ Status │", end="")
-    while True:
-        current_state = current_state.next
-        if current_state._RelayState__relay_switch_is == _ON:
-            print(" HIGH │", end="")
-        else:
-            print(" LOW  │", end="")
-        if not current_state.next:
-            break
-
-    current_state = sm._StateMachine__start
-    print("\n├────────┴", end="")
-    while True:
-        current_state = current_state.next
-        if current_state.get_relay_number() == 3:
-            print("──────┼", end="")
-        elif current_state.get_relay_number() > 3:
-            print("──────┘", end="")
-        else:
-            print("──────┴", end="")
-        if not current_state.next:
-            break
-
-    if sm._StateMachine__current_state:
-        print("\n│ The current state is: {0:>5} │".format(sm._StateMachine__current_state.get_relay_number()), end="")
-        print("\n┴─────────────────────────────┘", end="")
-
-    print("\n", end="")
 
 
 def main():

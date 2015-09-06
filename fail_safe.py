@@ -1,11 +1,10 @@
+from lib.log_v2 import logger
 from lib.observable import Observable
-
-__author__ = 'alt_mulig'
-
 from lib.observer import Observer
 from threading import Thread
 from time import sleep, perf_counter
-import sys
+
+__author__ = 'alt_mulig'
 
 
 class __FailSafe(Observer):
@@ -39,8 +38,7 @@ class __FailSafe(Observer):
                 self.__time_last_updated = None
 
                 # TODO: Make it only print on debug
-                print("Runs fail_safe because there hasn't been a pulse in {0}s".format(self.__wait_time))
-                sys.stdout.flush()
+                logger.info("Runs fail_safe because there hasn't been a pulse in {0}s".format(self.__wait_time))
 
             sleep(1.0)
 

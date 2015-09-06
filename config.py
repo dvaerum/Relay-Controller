@@ -1,9 +1,9 @@
 from configparser import ConfigParser
 import re
 import os.path
-import sys
 from lib.observable import Observable
 from lib.observer import Observer
+from lib.log_v2 import logger
 
 
 class Config(Observer):
@@ -32,8 +32,7 @@ class Config(Observer):
         # Raise FileNotFoundError if file is missing
         open(self.__file, "r")
 
-        print("Info: Config file loading...")
-        sys.stdout.flush()
+        logger.info("Config file loading...")
         self.__config.read(self.__file)
 
         tmp_relay = []
@@ -46,17 +45,14 @@ class Config(Observer):
                     tmp_relay.append(r)
 
         if not tmp_relay:
-            print("Info: There is not defined any relays")
-            sys.stdout.flush()
+            logger.info("There is not defined any relays")
             raise ImportError("There was no relays specified in the config file '{0}'".format(self.__file))
 
         self.__relay = tmp_relay
-        print("Info: Config file Loaded")
-        sys.stdout.flush()
+        logger.info("Config file Loaded")
 
         self.observable.update_observers(self.__relay)
-        print("Info: Notified observers")
-        sys.stdout.flush()
+        logger.info("Notified observers")
 
     def __check_relay(self, section):
         tmp = self.Relay()
@@ -67,8 +63,7 @@ class Config(Observer):
             tmp.gpio_pin = self.__gpio_pins[section[5:]]
             tmp.relay_number = int(section[5:])
         except ValueError as msg:
-            print(msg)
-            sys.stdout.flush()
+            logger.error(msg)
             return None
         return tmp
 
@@ -83,8 +78,7 @@ class Config(Observer):
         return float(value.replace(",", "."))
 
     def save(self):
-        print("Info: Save config file")
-        sys.stdout.flush()
+        logger.info("Save config file")
 
         self.__config["Relay1"] = {}
         self.__config["Relay1"]["watt"] = "9.6"

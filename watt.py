@@ -1,9 +1,10 @@
-__author__ = 'alt_mulig'
-
-import sys
+from lib.log_v2 import logger
 import time
 from collections import deque
 from lib.observable import Observable
+
+__author__ = 'alt_mulig'
+
 try:
     import RPIO as GPIO
 except SystemError:
@@ -55,8 +56,7 @@ class __Watt:
             while self.__interval() >= self.__max_time:
                 self.__pulse.popleft()
         else:
-            print("An Interrupt happened ({0:.2f}s)".format(seconds))
-            sys.stdout.flush()
+            logger.debug("An Interrupt happened ({0:.2f}s)".format(seconds))
 
     def __interval(self):
         return self.__pulse[-1] - self.__pulse[0]

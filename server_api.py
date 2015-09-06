@@ -4,6 +4,7 @@ from queue import Queue
 from selectors import EVENT_READ
 from socket import socket, AF_UNIX
 from lib import network_api
+from lib.log_v2 import logger
 from state_machine import state_machine
 from watt import watt
 
@@ -35,7 +36,7 @@ class __ServerAPI(network_api.NetworkAPI):
 
     def __accept(self, sock: socket):
         conn, addr = sock.accept()
-        print('accepted: {0}, from: {1}'.format(conn, addr))
+        logger.debug('accepted: {0}, from: {1}'.format(conn, addr))
         conn.setblocking(False)
         self.__selector.register(conn, EVENT_READ)
         self.__connections.append(conn)
@@ -98,7 +99,7 @@ class __ServerAPI(network_api.NetworkAPI):
         except (BrokenPipeError, EOFError):
             self.__close_conn(conn)
         except BaseException as e:
-            print(e)
+            logger.error(e)
             self.__close_conn(conn)
 
     def __recv_kW(self, package, conn):

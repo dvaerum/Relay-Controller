@@ -1,8 +1,8 @@
 from threading import Thread
 from time import sleep
-from utilities import debug_print
+from lib.log_v2 import logger
 
-debug_print("Loading library: {0}".format(__name__))
+logger.info("Loading library: {0}".format(__name__))
 
 
 pins = {"1": 10, "2": 9, "3": 11, "4": 22}
@@ -19,7 +19,7 @@ def setup(gpio_pin, in_out):
 def output(gpio_pin, high_low):
     for v in pins:
         if pins[v] == gpio_pin:
-            debug_print("Relay[{0}] is {1}".format(v, "HIGH" if high_low else "LOW"))
+            logger.debug("Relay[{0}] is {1}".format(v, "HIGH" if high_low else "LOW"))
 
 
 def main():
