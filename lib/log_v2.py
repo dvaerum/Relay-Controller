@@ -12,6 +12,7 @@ with open(file_log_error, "w+"):
 # create logger with 'Relay-Controller'
 logger = logging.getLogger('Relay-Controller')
 logger.setLevel(logging.DEBUG)
+logger.propagate = False  # Fixes double log to journal
 
 # create file handler which logs even debug messages
 ih = logging.FileHandler(file_log_info)
