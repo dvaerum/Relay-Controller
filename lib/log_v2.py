@@ -22,12 +22,17 @@ ih.setLevel(logging.DEBUG)
 eh = logging.FileHandler(file_log_error)
 eh.setLevel(logging.ERROR)
 
+# create journal handler
+jh = journal.JournalHandler()
+jh.setLevel(logging.DEBUG)
+
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ih.setFormatter(formatter)
 eh.setFormatter(formatter)
+jh.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
 
 # add the handlers to the logger
 logger.addHandler(ih)
 logger.addHandler(eh)
-logger.addHandler(journal.JournalHandler())
+logger.addHandler(jh)
