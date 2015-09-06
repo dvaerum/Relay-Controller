@@ -28,6 +28,10 @@ try:
         inotify.stop()
         pi.stop()
         server.stop()
+
+        inotify.wait()
+        pi.wait()
+
         logger.info("Exited")
         sys.exit(0)
 

@@ -23,13 +23,16 @@ class __FailSafe(Observer):
         self.__time_last_updated = perf_counter()
 
     def start(self):
-        self.__thread_running = True
         if not self.__thread or not self.__thread.is_alive():
+            self.__thread_running = True
             self.__thread = Thread(target=self.__run, name="Thread FailSafe.__run")
             self.__thread.start()
 
     def stop(self):
         self.__thread_running = False
+
+    def wait(self):
+        self.__thread.join()
 
     def __run(self):
         while self.__thread_running:

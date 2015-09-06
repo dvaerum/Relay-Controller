@@ -27,6 +27,10 @@ class PI(Observer):
         watt.observable_pulse.unregister(fail_safe)
         state_machine.stop()
 
+    def wait(self):
+        fail_safe.wait()
+        watt.wait()
+
     def update(self, relay):
         self.add_relay(relay)
 

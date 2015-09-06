@@ -61,6 +61,9 @@ class __Inotify():
         self.__is_run = False
         self.__notifier.stop()
 
+    def wait(self):
+        self.__thread.join()
+
     def __run(self):
         self.__is_run = True
         while self.__is_run:

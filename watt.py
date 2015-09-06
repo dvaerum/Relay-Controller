@@ -37,6 +37,10 @@ class __Watt:
     def stop(self):
         GPIO.stop_waiting_for_interrupts()
 
+    def wait(self):
+        # TODO: Make A join
+        time.sleep(1.0)
+
     def __add_pulse(self, gpio_id, value):
         # TODO: How to handle float overflow (time.perf_counter)
         # TODO: Mads (vismanden) siger at det aldrig vil ske

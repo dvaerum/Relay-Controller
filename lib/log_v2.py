@@ -1,4 +1,5 @@
 import logging
+from systemd import journal
 
 file_log_info = 'log/relay-controller.log'
 file_log_error = 'log/relay-controller.err'
@@ -16,10 +17,6 @@ logger.setLevel(logging.DEBUG)
 ih = logging.FileHandler(file_log_info)
 ih.setLevel(logging.DEBUG)
 
-
-dh = logging.StreamHandler()
-dh.setLevel(logging.DEBUG)
-
 # create file handler with a higher log level
 eh = logging.FileHandler(file_log_error)
 eh.setLevel(logging.ERROR)
@@ -27,10 +24,9 @@ eh.setLevel(logging.ERROR)
 # create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ih.setFormatter(formatter)
-dh.setFormatter(formatter)
 eh.setFormatter(formatter)
 
 # add the handlers to the logger
 logger.addHandler(ih)
-logger.addHandler(dh)
 logger.addHandler(eh)
+logger.addHandler(journal.JournalHandler())

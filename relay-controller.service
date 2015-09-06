@@ -15,7 +15,7 @@ WorkingDirectory=/opt/relay-controller
 
 ExecStart=/opt/relay-controller/daemon.py "" 50007
 #ExecReload=/bin/kill -HUP $MAINPID
-ExecStop=/bin/kill -KILL $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
 
 TimeoutStopSec=10s
 RestartSec=75s

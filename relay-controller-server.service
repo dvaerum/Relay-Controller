@@ -16,7 +16,9 @@ Environment=PYTHONPATH=/opt/relay-controller
 
 ExecStart=/opt/relay-controller/tornado/hallo_world.py vindmoelle 50007 8000
 #ExecReload=/bin/kill -HUP $MAINPID
-ExecStop=/bin/kill -KILL $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+
+KillMode=none
 
 TimeoutStopSec=10s
 RestartSec=75s
