@@ -1,6 +1,7 @@
-from lib.log import logger
 import time
 from collections import deque
+
+from lib.log import logger
 from lib.observable import Observable
 
 __author__ = 'alt_mulig'
@@ -8,7 +9,7 @@ __author__ = 'alt_mulig'
 try:
     import RPIO as GPIO
 except SystemError:
-    import lib.fakegpio as GPIO
+    import lib.client.fakegpio as GPIO
 
 
 class __Watt:

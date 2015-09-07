@@ -1,4 +1,5 @@
 import time
+
 from lib.log import logger
 from lib.observable import Observable
 from lib.observer import Observer
@@ -6,7 +7,7 @@ from lib.observer import Observer
 try:
     import RPIO as GPIO
 except SystemError:
-    import lib.fakegpio as GPIO
+    import lib.client.fakegpio as GPIO
 
 
 # Defines
@@ -169,7 +170,7 @@ class __StateMachine(Observer):
         pass
 
     def update(self, *args, **kwargs):
-        logger.info("{0:.3f} kW ({1:.2f}s)".format(args[0], args[1]))
+        logger.debug("{0:.3f} kW ({1:.2f}s)".format(args[0], args[1]))
 
         if self.is_started():
             self.next(args[0], args[1])

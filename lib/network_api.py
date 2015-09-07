@@ -11,10 +11,13 @@ from lib.sync_selector import SyncSelector
 __author__ = 'alt_mulig'
 
 COM_KILOWATT = 0b00000001
-COM_RELAY = 0b00000010
+COM_RELAY    = 0b00000010
+COM_LOGIN    = 0b00000100
 
 STA_UPDATE = 0b00000001
 STA_RELOAD = 0b00000010
+STA_USER   = 0b00000100
+STA_COOKIE = 0b00001000
 
 
 class NetworkAPI:
@@ -92,18 +95,13 @@ class NetworkAPI:
                     if key.data is not None:
                         key.data(key.fileobj)
                     else:
-                        data_raw = self._recv_handler(key.fileobj)  # key.fileobj is a object of the class Socket
+                        data_raw = key.fileobj.recv(4096)  # key.fileobj is a object of the class Socket
                         if data_raw is not None:
                             package = pickle.loads(data_raw)
                             self.__recv_queue.put((package, key.fileobj))
 
             except BaseException as e:
                 self._exception_handler(key.fileobj, e)
-
-    # TODO: Replace with close connection
-    @abstractmethod
-    def _recv_handler(self, conn):
-        return conn.recv(4096)
 
     def __selector_teardown(self):
         self.__selector_running = False

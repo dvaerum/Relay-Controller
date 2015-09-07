@@ -29,15 +29,15 @@ class __ClientAPI(network_api.NetworkAPI):
                 self._socket.connect(self._address)
 
                 self.__is_connected = True
-                # self.observe_start.register(self.__connected)
+                self.__connected()
 
                 return True
             except (ConnectionRefusedError, FileNotFoundError):
-                print("Connecting fail {0} out of {1} tries".format(count, self.__max_connection_tries))
+                logger.debug("Connecting fail {0} out of {1} tries".format(count, self.__max_connection_tries))
                 sleep(self.__delay_between_tries)
             except gaierror as e:
-                print("Connecting fail {0} out of {1} tries. It seems that the hostname is wrong"
-                      .format(count, self.__max_connection_tries))
+                logger.debug("Connecting fail {0} out of {1} tries. It seems that the hostname is wrong"
+                             .format(count, self.__max_connection_tries))
                 sleep(self.__delay_between_tries)
 
         return False
@@ -49,13 +49,9 @@ class __ClientAPI(network_api.NetworkAPI):
         elif isinstance(exception, BlockingIOError):
             # TODO: Log "Lost connection to server"
             self.stop()
-        # TODO: uncomment this excepting and find out how to handle it
-        # elif isinstance(exception, BlockingIOError):
-        #     self.stop()
         else:
             raise NotImplementedError('There is not implemented a exception handler for {0}'
                                       .format(exception.__class__.__name__))
-
 
     def _teardown(self):
         self.__is_connected = False
@@ -77,11 +73,38 @@ class __ClientAPI(network_api.NetworkAPI):
                 logger.info("Tries the connect again")
                 sleep(1)
 
+    def __connected(self):
+        with open('user.txt') as u:
+            with open('pass.txt') as p:
+                self.__create_package(network_api.COM_LOGIN,
+                                      network_api.STA_USER,
+                                      (u.read(), p.read()))
+
     def stop(self):
         if self.__reconnect_thread:
             self.__reconnect_running = False
             self.__reconnect_thread.join()
         super().stop()
+
+    def _receive(self, package, conn):
+        def __recv_kW(package):
+            if package['STATUS'] == network_api.STA_UPDATE:
+                self.update_kW(watt.get_kW_and_time())
+
+        def __recv_relay(package):
+            if package['STATUS'] == network_api.STA_RELOAD:
+                self.__create_package(network_api.COM_RELAY,
+                                      network_api.STA_RELOAD,
+                                      state_machine.get_relay_full_status())
+
+        try:
+            if isinstance(package, dict):
+                if package['COMMAND'] == network_api.COM_KILOWATT:
+                    __recv_kW(package)
+                elif package['COMMAND'] == network_api.COM_RELAY:
+                    __recv_relay(package)
+        except None:
+            pass
 
     def __create_package(self, command, status, data):
         self._send({'COMMAND': command, 'STATUS': status, 'DATA': data}, self._socket)
@@ -95,26 +118,6 @@ class __ClientAPI(network_api.NetworkAPI):
 
     def __update(self, command, data):
         self.__create_package(command, network_api.STA_UPDATE, data)
-
-    def _receive(self, package, conn):
-        try:
-            if isinstance(package, dict):
-                if package['COMMAND'] == network_api.COM_KILOWATT:
-                    self.__recv_kW(package)
-                elif package['COMMAND'] == network_api.COM_RELAY:
-                    self.__recv_relay(package)
-        except None:
-            pass
-
-    def __recv_kW(self, package):
-        if package['STATUS'] == network_api.STA_UPDATE:
-            self.update_kW(watt.get_kW_and_time())
-
-    def __recv_relay(self, package):
-        if package['STATUS'] == network_api.STA_RELOAD:
-            self.__create_package(network_api.COM_RELAY,
-                                  network_api.STA_RELOAD,
-                                  state_machine.get_relay_full_status())
 
 
 client = __ClientAPI()
