@@ -27,8 +27,8 @@ eh = logging.FileHandler(file_log_error)
 eh.setLevel(logging.ERROR)
 
 # create journal handler
-# jh = logging.StreamHandler()
-jh = journal.JournalHandler()
+jh = logging.StreamHandler()
+# jh = journal.JournalHandler()
 jh.setLevel(logging.DEBUG)
 
 # create formatter and add it to the handlers

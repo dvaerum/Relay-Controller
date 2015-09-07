@@ -17,7 +17,7 @@ STA_UPDATE = 0b00000001
 STA_RELOAD = 0b00000010
 
 
-class NetworkAPI(object):
+class NetworkAPI:
     __metaclass__ = ABCMeta
 
     observe_start = Observable()
@@ -37,7 +37,7 @@ class NetworkAPI(object):
     __selector_thread = None
     __selector_lock = Lock()
 
-    __running = False
+    __reconnect_running = False
 
     _family = None
     _address = None
@@ -62,14 +62,14 @@ class NetworkAPI(object):
         # self._socket.setblocking(False)
 
     def start(self, family, address):
-        if not self.__running:
+        if not self.__reconnect_running:
             self.__init_socket(family, address)
 
             if self._setup():
                 self.__selector_setup()
                 self.__recv_setup()
                 self.__send_setup()
-                self.__running = True
+                self.__reconnect_running = True
                 self.observe_start.update_observers()
 
     def __selector_setup(self):
@@ -77,7 +77,7 @@ class NetworkAPI(object):
         callobj = self._selector_handler(self.__selector)
         self.__selector.register(self._socket, EVENT_READ, callobj)
         self.__selector_running = True
-        self.__selector_thread = Thread(name='ServerAPI.__selector_run()', target=self.__selector_run)
+        self.__selector_thread = Thread(name='NetworkAPI.__selector_run()', target=self.__selector_run)
         self.__selector_thread.start()
 
     @abstractmethod
@@ -97,13 +97,8 @@ class NetworkAPI(object):
                             package = pickle.loads(data_raw)
                             self.__recv_queue.put((package, key.fileobj))
 
-            # TODO: Create a close connection function for exceptions
-            except (EOFError, BlockingIOError) as e:
-                # TODO: Log "Lost connection to server"
-                self.stop()
-            # TODO: uncomment this excepting and find out how to handle it
-            except ConnectionResetError as e:
-                self.stop()
+            except BaseException as e:
+                self._exception_handler(key.fileobj, e)
 
     # TODO: Replace with close connection
     @abstractmethod
@@ -117,7 +112,7 @@ class NetworkAPI(object):
 
     def __recv_setup(self):
         self.__recv_running = True
-        self.__recv_thread = Thread(name="ServerAPI.__recv_run()", target=self.__recv_run)
+        self.__recv_thread = Thread(name="NetworkAPI.__recv_run()", target=self.__recv_run)
         self.__recv_thread.start()
 
     def __recv_run(self):
@@ -127,15 +122,13 @@ class NetworkAPI(object):
                 self._receive(package, conn)
             except Empty:
                 pass
-            except TypeError:
-                self._error_handler(conn)
 
     def __recv_teardown(self):
         self.__recv_running = False
 
     def __send_setup(self):
         self.__send_running = True
-        self.__send_thread = Thread(name="ServerAPI.__send_run()", target=self.__send_run)
+        self.__send_thread = Thread(name="NetworkAPI.__send_run()", target=self.__send_run)
         self.__send_thread.start()
 
     def __send_run(self):
@@ -161,18 +154,20 @@ class NetworkAPI(object):
         self.__send_running = False
 
     def stop(self):
-        if self.__running:
+        if self.__reconnect_running:
             self.__selector_teardown()
             self.__recv_teardown()
             self.__send_teardown()
-            self.__selector_thread.join()
-            self.__recv_thread.join()
-            self.__send_thread.join()
 
             self._socket.close()
-            self.__running = False
+            self.__reconnect_running = False
             self._teardown()
             self.observe_stop.update_observers()
+
+    def wait(self):
+        self.__selector_thread.join()
+        self.__recv_thread.join()
+        self.__send_thread.join()
 
     @abstractmethod
     def _setup(self):
@@ -187,5 +182,5 @@ class NetworkAPI(object):
         pass
 
     @abstractmethod
-    def _error_handler(self, conn):
-        self.stop()
+    def _exception_handler(self, conn, exception):
+        raise NotImplementedError('The _exception_handler method is not defined in the inherited class')

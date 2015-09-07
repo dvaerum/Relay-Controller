@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from socket import AF_INET, AF_UNIX
-from threading import Thread
 import threading
 from time import sleep
 import os
@@ -15,58 +13,13 @@ from tornado.web import RequestHandler, Application, url
 from lib.log import logger
 
 from lib.observer import Observer
-from relay_net_client import Client
+try:
+    from tornado.server_api import server
+except:
+    from server_api import server
+
 
 __author__ = 'alt_mulig'
-
-
-def count_thread():
-    while True:
-        print("_____________________________________________")
-        for t in threading.enumerate():
-            print("Threads alive ({})".format(t.name))
-        print("---------------------------------------------")
-        sleep(1)
-# Thread(target=count_thread, name="Count Thread").start()
-
-
-class KeepConnected:
-    __thread = None
-    __running = False
-
-    def __init__(self, family, address):
-        self.client = Client(family, address)
-
-    def start(self):
-        if not self.__thread or not self.__thread.is_alive():
-            self.__thread = Thread(target=self.__run, name="KeepConnected.__run()")
-            self.__running = True
-            self.__thread.start()
-            self.client.observe_stop.register(self.start)
-
-    def stop(self):
-        self.client.observe_stop.unregister(self.start)
-        self.__running = False
-        self.client.stop()
-
-    def wait(self):
-        self.__thread.join()
-
-    def __run(self):
-        while self.__running and not self.client.is_connected():
-            self.client.start()
-            if self.client.is_connected():
-                logger.info("Connected to Server")
-                self.__running = False
-            else:
-                logger.info("Tries the connect again")
-                sleep(1)
-
-if len(sys.argv) == 3 or len(sys.argv) == 4:
-    keep_connected = KeepConnected(family=AF_INET, address=(sys.argv[1], int(sys.argv[2])))
-else:
-    keep_connected = KeepConnected(family=AF_UNIX, address='/tmp/relay.sock')
-client = keep_connected.client
 
 
 class LogHandler(RequestHandler):
@@ -87,11 +40,11 @@ class LogSocketHandler(WebSocketHandler, Observer):
         logger.debug("WebSocket opened")
         self.write_message(json_encode({'COMMAND': network_api.COM_RELAY,
                                         'STATUS': network_api.STA_RELOAD,
-                                        'DATA': client.get_relays()}))
+                                        'DATA': server.get_relays()}))
 
     def on_message(self, message):
         # TODO: Send old data
-        kilewatt, second = client.get_kilowatt()
+        kilewatt, second = server.get_kilowatt()
         self.write_message(json_encode({"kilowatt": kilewatt,
                                         "second": second}))
 
@@ -118,7 +71,8 @@ class Application(tornado.web.Application):
 def signal_handler_sigterm(signal, frame):
     logger.info("Exiting...")
     IOLoop.current().stop()
-    keep_connected.stop()
+    # keep_connected.stop()
+    server.stop()
 
 
     logger.info("Exited")
@@ -128,19 +82,24 @@ def signal_handler_sigterm(signal, frame):
 def signal_handler_sigkill(signal, frame):
     pass
 
+
 def main():
     app = Application()
     if len(sys.argv) == 4:
         app.listen(int(sys.argv[3]), address='')
     else:
         app.listen(8002, address='')
-    keep_connected.start()
-    keep_connected.client.observe_kW.register(LogSocketHandler)
+    server.start()
+    server.observe_kW.register(LogSocketHandler)
+
 
     signal.signal(signal.SIGTERM, signal_handler_sigterm)
     signal.signal(signal.SIGHUP, signal_handler_sigkill)
 
-    IOLoop.current().start()
+    try:
+        IOLoop.current().start()
+    except KeyboardInterrupt:
+        signal_handler_sigterm(None, None)
 
 
 if __name__ == '__main__':

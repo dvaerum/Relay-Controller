@@ -51,7 +51,7 @@ class __ServerAPI(network_api.NetworkAPI):
         except OSError:
             self.__close_conn(conn)
 
-    def _error_handler(self, conn):
+    def _exception_handler(self, conn):
         self.__close_conn(conn)
 
     def __close_all_conn(self):
@@ -113,4 +113,4 @@ class __ServerAPI(network_api.NetworkAPI):
                                state_machine.get_relay_full_status(), conn=conn)
 
 
-server = __ServerAPI()
+client = __ServerAPI()
