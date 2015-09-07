@@ -2,10 +2,11 @@ from queue import Queue
 from socket import gaierror
 from threading import Thread
 from time import sleep
+
 from lib import network_api
 from lib.log import logger
-from state_machine import state_machine
-from watt import watt
+from lib.client.state_machine import state_machine
+from lib.client.watt import watt
 
 __author__ = 'alt_mulig'
 

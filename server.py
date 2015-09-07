@@ -1,22 +1,17 @@
 #!/usr/bin/env python
-import threading
-from time import sleep
 import os
 import sys
 import signal
-from lib import network_api
 
 from tornado.websocket import WebSocketHandler, tornado
 from tornado.escape import json_encode
 from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler, Application, url
-from lib.log import logger
 
+from lib import network_api
+from lib.log import logger
 from lib.observer import Observer
-try:
-    from tornado.server_api import server
-except:
-    from server_api import server
+from lib.server.server_api import server
 
 
 __author__ = 'alt_mulig'

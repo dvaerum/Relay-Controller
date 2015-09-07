@@ -3,9 +3,10 @@ from os import remove
 from queue import Queue
 from selectors import EVENT_READ
 from socket import socket, AF_UNIX
+
 from lib import network_api
 from lib.log import logger
-from state_machine import state_machine
+from lib.client.state_machine import state_machine
 from watt import watt
 
 __author__ = 'alt_mulig'

@@ -1,10 +1,11 @@
 __author__ = 'alt_mulig'
 
 import unittest
-from state_machine import RelayState
-from state_machine import _ON
-from state_machine import _OFF
 from time import sleep
+
+from lib.client.state_machine import RelayState
+from lib.client.state_machine import _ON
+from lib.client.state_machine import _OFF
 
 
 class TestRelayState(unittest.TestCase):

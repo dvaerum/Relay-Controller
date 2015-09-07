@@ -1,10 +1,10 @@
 __author__ = 'Dennis Vestergaard Værum'
 
 import unittest
-from config import Config
 from os.path import exists
 from os import remove
 
+from lib.client.config import Config
 
 working_config_file = \
 """

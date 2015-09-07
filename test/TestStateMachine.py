@@ -1,8 +1,9 @@
 __author__ = 'alt_mulig'
 
 import unittest
-from state_machine import RelayState
-from state_machine import state_machine
+
+from lib.client.state_machine import RelayState
+from lib.client.state_machine import state_machine
 
 
 class TestStateMachine(unittest.TestCase):

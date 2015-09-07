@@ -1,9 +1,9 @@
 __author__ = 'Dennis Vestergaard Værum'
 
-from fail_safe import fail_safe
+from lib.client.fail_safe import fail_safe
 from lib.observer import Observer
-from state_machine import state_machine, RelayState
-from watt import watt
+from lib.client.state_machine import state_machine, RelayState
+from lib.client.watt import watt
 
 
 class PI(Observer):

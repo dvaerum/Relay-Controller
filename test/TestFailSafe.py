@@ -1,7 +1,8 @@
 from time import sleep
-from fail_safe import fail_safe
-from lib.observer import Observer
 import unittest
+
+from lib.client.fail_safe import fail_safe
+from lib.observer import Observer
 
 __author__ = 'alt_mulig'
 

@@ -1,8 +1,9 @@
 from collections import deque
 from time import sleep
-from lib.observer import Observer
 import unittest
-from watt import watt
+
+from lib.observer import Observer
+from lib.client.watt import watt
 
 __author__ = 'alt_mulig'
 

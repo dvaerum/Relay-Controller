@@ -2,14 +2,15 @@
 import sys
 import os
 import signal
-from lib.log import logger
-from pi import PI
-from config import Config
-from inotify import inotify
-from client_api import client
-from state_machine import state_machine
-from watt import watt
 from socket import AF_INET, AF_UNIX
+
+from lib.log import logger
+from lib.client.pi import PI
+from lib.client.config import Config
+from lib.client.inotify import inotify
+from lib.client.client_api import client
+from lib.client.state_machine import state_machine
+from lib.client.watt import watt
 
 __author__ = 'Dennis Vestergaard Værum'
 

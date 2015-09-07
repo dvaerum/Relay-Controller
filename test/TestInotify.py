@@ -1,11 +1,11 @@
 import unittest
 import threading
-from inotify import inotify
 from os import remove
 from os.path import exists
 from time import sleep
-from lib.observer import Observer
 
+from lib.client.inotify import inotify
+from lib.observer import Observer
 
 __author__ = 'Dennis Værum'
 
