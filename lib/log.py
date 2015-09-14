@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import RotatingFileHandler
 from systemd import journal
 from os.path import exists
 
@@ -19,16 +20,16 @@ logger.setLevel(logging.DEBUG)
 logger.propagate = False  # Fixes double log to journal
 
 # create file handler which logs even debug messages
-ih = logging.FileHandler(file_log_info)
+ih = RotatingFileHandler(filename=file_log_info, backupCount=1, maxBytes=5 * 1024 * 1024)
 ih.setLevel(logging.DEBUG)
 
 # create file handler with a higher log level
-eh = logging.FileHandler(file_log_error)
+eh = RotatingFileHandler(filename=file_log_error, backupCount=1, maxBytes=5 * 1024 * 1024)
 eh.setLevel(logging.ERROR)
 
 # create journal handler
-jh = logging.StreamHandler()
-# jh = journal.JournalHandler()
+# jh = logging.StreamHandler()
+jh = journal.JournalHandler()
 jh.setLevel(logging.DEBUG)
 
 # create formatter and add it to the handlers
