@@ -233,9 +233,14 @@ class __StateMachine(Observer):
             temp = self.__current_state
             self.__current_state = self.__current_state.run(kW)
             # TODO: Make a test case that makes sure that both self.__current_state and temp is check for the attr. 'is_relay_on'
-            if hasattr(self.__current_state, 'is_relay_on') and hasattr(temp, 'is_relay_on') and not temp == self.__current_state:
-                self.observe_change.update_observers((temp.get_relay_number(), temp.is_relay_on()),
-                                                     (self.__current_state.get_relay_number(), self.__current_state.is_relay_on()))
+            if not temp == self.__current_state:
+                if hasattr(self.__current_state, 'is_relay_on') and hasattr(temp, 'is_relay_on'):
+                    self.observe_change.update_observers((temp.get_relay_number(), temp.is_relay_on()),
+                                                         (self.__current_state.get_relay_number(), self.__current_state.is_relay_on()))
+                elif hasattr(self.__current_state, 'is_relay_on'):
+                    self.observe_change.update_observers((self.__current_state.get_relay_number(), self.__current_state.is_relay_on()))
+                elif hasattr(temp, 'is_relay_on'):
+                    self.observe_change.update_observers((temp.get_relay_number(), temp.is_relay_on()))
         else:
             raise IndexError("You have to call start first")
 
