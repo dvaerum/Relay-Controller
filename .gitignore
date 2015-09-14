@@ -13,4 +13,6 @@ relay-controller-*.pkg.tar.xz
 
 .PKGBUILD*
 PKGBUILD
-make-client/relay-controller.install
+/make-client
+/make-server
+/log
