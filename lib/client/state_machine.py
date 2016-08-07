@@ -6,7 +6,7 @@ from lib.observer import Observer
 
 try:
     import RPIO as GPIO
-except SystemError:
+except ImportError:
     import lib.client.fakegpio as GPIO
 
 

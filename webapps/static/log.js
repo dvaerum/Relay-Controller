@@ -1,3 +1,4 @@
+"use strict";
 (function () {
     var ws = new ReconnectingWebSocket("ws://" + window.location.host + "/log_socket/");
 
@@ -14,7 +15,7 @@
     };
 
     ws.onmessage = function (event) {
-        data = JSON.parse(event.data);
+        var data = JSON.parse(event.data);
         switch (data.COMMAND) {
             case 1:
                 log(data.DATA);
@@ -28,9 +29,9 @@
     var log_count = 0
     var log_max_line_number = 20
 
-    log = function (data) {
-        kilowatt = Math.round(data[0]*1000)/1000;
-        second   = Math.round(data[1]*100)/100;
+    var log = function (data) {
+        var kilowatt = Math.round(data[0]*1000)/1000;
+        var second   = Math.round(data[1]*100)/100;
         log_count++;
         var date = new Date();
         var log_time = $("<div></div>").attr("data-datetime", new Date()).formatDateTime('[yy-mm-dd hh:ii:ss]');
@@ -42,9 +43,9 @@
         }
     }
 
-    relays = function (data) {
-        for (i = 0; i < data.length; i++) {
-            relay = $("#status > #" + (data[i][0]))
+    var relays = function (data) {
+        for (var i = 0; i < data.length; i++) {
+            var relay = $("#status > #" + (data[i][0]))
             if (data[i][1]) {
                 relay.css("background-color", "green")
             } else {

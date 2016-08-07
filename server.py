@@ -3,6 +3,7 @@ import sys
 import signal
 from os import path
 
+from socket import AF_INET
 from tornado.ioloop import IOLoop
 
 
@@ -13,7 +14,7 @@ from lib.server.web_module import LogSocketHandler, Application
 __author__ = 'alt_mulig'
 
 
-def signal_handler_sigterm(signal, frame):
+def signal_handler_sigterm(signal = None, frame = None):
     logger.info("Exiting...")
 
     IOLoop.current().stop()
@@ -33,7 +34,11 @@ def main():
         app.listen(int(sys.argv[3]), address='')
     else:
         app.listen(8002, address='')
-    server.start()
+
+    if len(sys.argv) < 3:
+        logger.info("")
+        signal_handler_sigterm()
+    server.start(AF_INET, (sys.argv[1], int(sys.argv[2])))  # TODO: Add exception handling
     server.observe_kW.register(LogSocketHandler)
 
 

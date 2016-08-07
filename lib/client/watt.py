@@ -8,7 +8,7 @@ __author__ = 'alt_mulig'
 
 try:
     import RPIO as GPIO
-except SystemError:
+except ImportError:
     import lib.client.fakegpio as GPIO
 
 
