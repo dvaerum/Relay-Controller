@@ -1,1 +1,7 @@
 This is a controller to turn relays on/off base on a pulse.
+
+## Dependencies
+ - python-pyinotify
+ - python-systemd
+ - python-tornado
+

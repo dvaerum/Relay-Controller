@@ -114,6 +114,7 @@ class __ServerAPI(network_api.NetworkAPI):
                         if relay[0] == package_relay[0]:
                             relay = package_relay
 
+                package['DATA'] = self.__relays  # Sends all the states of all the relays
                 self.observe_kW.update_observers(package)
             elif package['STATUS'] == network_api.STA_RELOAD:
                 self.__relays = package['DATA']
