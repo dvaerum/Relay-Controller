@@ -4,4 +4,5 @@ This is a controller to turn relays on/off base on a pulse.
  - python-pyinotify
  - python-systemd
  - python-tornado
+ - python-rpio
 
